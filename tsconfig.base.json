@@ -1,0 +1,23 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2020",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@fi-temp/shared-models": ["./libs/shared-models/src/index.ts"],
+      "@fi-temp/shared-ui": ["./libs/shared-ui/src/index.ts"],
+      "@fi-temp/f1-data-client": ["./libs/f1-data-client/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
