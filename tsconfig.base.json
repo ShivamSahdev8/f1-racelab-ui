@@ -14,6 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
+      "@f1-racelab/shared-models": ["./libs/shared-models/src/index.ts"],
+      "@f1-racelab/shared-ui": ["./libs/shared-ui/src/index.ts"],
+      "@f1-racelab/f1-data-client": ["./libs/f1-data-client/src/index.ts"],
       "@fi-temp/shared-models": ["./libs/shared-models/src/index.ts"],
       "@fi-temp/shared-ui": ["./libs/shared-ui/src/index.ts"],
       "@fi-temp/f1-data-client": ["./libs/f1-data-client/src/index.ts"]
