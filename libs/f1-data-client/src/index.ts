@@ -1,1 +1,2 @@
-export * from './lib/f1-data-client';
+export * from './lib/openf1.service';
+export * from './lib/ergast.service';
