@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, map, catchError, throwError, forkJoin } from 'rxjs';
 import {
   Driver,
   LapData,
@@ -69,6 +69,69 @@ export class OpenF1Service {
       );
   }
 
+  // Add this method to the service
+getLiveTimingData(sessionKey: string = 'latest'): Observable<any[]> {
+  return forkJoin({
+    drivers:   this.getDrivers(sessionKey),
+    positions: this.getLivePositions(sessionKey),
+    stints:    this.getStints(sessionKey),
+  }).pipe(
+    map(({ drivers, positions, stints }) => {
+
+      // Step 1 — keep only LATEST position per driver
+      const latestPositions = positions.reduce((acc: any, pos: any) => {
+        if (!acc[pos.driverNumber] || 
+            pos.currentLap > acc[pos.driverNumber].currentLap) {
+          acc[pos.driverNumber] = pos;
+        }
+        return acc;
+      }, {});
+
+      // Step 2 — get latest stint per driver (for tyre compound)
+      const latestStints = stints.reduce((acc: any, stint: any) => {
+        if (!acc[stint.driverNumber] ||
+            stint.stint > acc[stint.driverNumber].stint) {
+          acc[stint.driverNumber] = stint;
+        }
+        return acc;
+      }, {});
+      
+      // Step 3 — merge driver + position + stint
+      return Object.values(latestPositions)
+        .map((pos: any) => {
+          const driver = drivers.find(d => d.driverId === pos.driverNumber);
+          const stint  = latestStints[pos.driverNumber];
+          return {
+            ...pos,
+            ...driver,
+            compound: stint?.compound ?? null,
+          };
+        })
+        .sort((a: any, b: any) => a.position - b.position); // sort by position
+    }),
+    catchError(this.handleError)
+  );
+}
+
+getStints(sessionKey: string = 'latest'): Observable<any[]> {
+  return this.http
+    .get<any[]>(`${BASE_URL}/stints`, {
+      params: { session_key: sessionKey }
+    })
+    .pipe(
+      map(response => response.map(this.mapStint)),
+      catchError(this.handleError)
+    );
+}
+
+private mapStint = (raw: any): any => ({
+  driverNumber: raw.driver_number,
+  stint:        raw.stint_number,
+  compound:     raw.compound,
+  lapStart:     raw.lap_start,
+  lapEnd:       raw.lap_end,
+  tyreAge:      raw.tyre_age_at_start,
+});
   // ── Mappers ──────────────────────────────────────────
 
   private mapDriver = (raw: any): Driver => ({
