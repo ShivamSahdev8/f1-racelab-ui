@@ -1,0 +1,72 @@
+<div class="live-timing">
+
+  <!-- Safety Car Banner -->
+  <div class="safety-car-banner" *ngIf="safetyCarActive$ | async">
+    🚗 SAFETY CAR DEPLOYED
+  </div>
+
+  <!-- Header -->
+  <div class="timing-header">
+    <h2>🏎️ Live Timing</h2>
+    <button (click)="refresh()" class="refresh-btn">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Timing Table -->
+  <ng-container *ngIf="timingData$ | async as timingData; else loading">
+
+    <!-- Table Header -->
+    <div class="table-header">
+      <span>POS</span>
+      <span>DRIVER</span>
+      <span>TEAM</span>
+      <span>TYRE</span>
+      <span>GAP</span>
+      <span>LAST LAP</span>
+    </div>
+
+    <!-- Driver Rows -->
+    <div
+      class="driver-row"
+      *ngFor="let entry of timingData; let i = index"
+      [ngStyle]="getTeamColorStyle(entry.teamColor)"
+      (click)="onDriverClick(entry)">
+
+      <!-- Position -->
+      <span class="position">{{ entry.position || i + 1 }}</span>
+
+      <!-- Driver -->
+      <span class="driver-info">
+        <span class="abbreviation">{{ entry.abbreviation }}</span>
+        <span class="full-name">{{ entry.fullName }}</span>
+      </span>
+
+      <!-- Team -->
+      <span class="team-name">{{ entry.teamName }}</span>
+
+      <!-- Tyre -->
+      <span class="tyre">
+        {{ getTyreEmoji(entry.compound) }}
+        <span class="compound-name">{{ entry.compound ?? '-' }}</span>
+      </span>
+
+      <!-- Gap -->
+      <span class="gap">
+        {{ entry.position === 1 ? 'LEADER' : entry.gap || '-' }}
+      </span>
+
+      <!-- Last Lap -->
+      <span class="last-lap">{{ entry.lastLapTime || '-' }}</span>
+
+    </div>
+  </ng-container>
+
+  <!-- Loading -->
+  <ng-template #loading>
+    <div class="loading">
+      ⏳ Loading live timing data...
+    </div>
+  </ng-template>
+
+</div>

@@ -1,0 +1,139 @@
+.live-timing {
+  padding: 24px;
+  background: #1a1a2e;
+  min-height: 100vh;
+  color: white;
+  font-family: 'Arial', sans-serif;
+}
+
+.safety-car-banner {
+  background: #ffd700;
+  color: black;
+  text-align: center;
+  padding: 12px;
+  font-weight: bold;
+  font-size: 18px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+.timing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.timing-header h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.refresh-btn {
+  background: #e10600;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.refresh-btn:hover {
+  background: #c00500;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 50px 180px 150px 100px 100px 120px;
+  padding: 10px 16px;
+  background: #0f3460;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.driver-row {
+  display: grid;
+  grid-template-columns: 50px 180px 150px 100px 100px 120px;
+  padding: 12px 16px;
+  background: #16213e;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-left: 4px solid transparent;
+  align-items: center;
+}
+
+.driver-row:hover {
+  background: #0f3460;
+}
+
+.position {
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+}
+
+.driver-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.abbreviation {
+  font-weight: bold;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.full-name {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.team-name {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.tyre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.compound-name {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.gap {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.last-lap {
+  font-size: 13px;
+  font-family: monospace;
+  color: #aaa;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 18px;
+  color: #888;
+}
