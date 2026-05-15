@@ -1,0 +1,74 @@
+<div class="standings">
+
+  <!-- Header -->
+  <div class="standings-header">
+    <h2>🏆 Championship Standings</h2>
+    <div class="season">2026 Season</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'drivers'"
+      (click)="setTab('drivers')">
+      Drivers
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'teams'"
+      (click)="setTab('teams')">
+      Teams
+    </button>
+  </div>
+
+  <!-- Driver Standings -->
+  <ng-container *ngIf="activeTab === 'drivers'">
+    <ng-container *ngIf="driverStandings$ | async as standings; else loading">
+
+      <div class="table-header">
+        <span>POS</span>
+        <span>DRIVER</span>
+        <span>TEAM</span>
+        <span>WINS</span>
+        <span>POINTS</span>
+      </div>
+
+      <div class="standing-row" *ngFor="let standing of standings">
+        <span class="position">{{ standing.position }}</span>
+        <span class="driver-name">{{ standing.driver.fullName }}</span>
+        <span class="team-name">{{ standing.driver.teamName }}</span>
+        <span class="wins">{{ standing.wins }}</span>
+        <span class="points">{{ standing.points }}</span>
+      </div>
+
+    </ng-container>
+  </ng-container>
+
+  <!-- Team Standings -->
+  <ng-container *ngIf="activeTab === 'teams'">
+    <ng-container *ngIf="teamStandings$ | async as standings; else loading">
+
+      <div class="table-header">
+        <span>POS</span>
+        <span>TEAM</span>
+        <span>WINS</span>
+        <span>POINTS</span>
+      </div>
+
+      <div class="standing-row" *ngFor="let standing of standings">
+        <span class="position">{{ standing.position }}</span>
+        <span class="team-name">{{ standing.teamName }}</span>
+        <span class="wins">{{ standing.wins }}</span>
+        <span class="points">{{ standing.points }}</span>
+      </div>
+
+    </ng-container>
+  </ng-container>
+
+  <!-- Loading -->
+  <ng-template #loading>
+    <div class="loading">⏳ Loading standings...</div>
+  </ng-template>
+
+</div>
