@@ -1,0 +1,116 @@
+.standings {
+  padding: 24px;
+  background: #1a1a2e;
+  min-height: 100vh;
+  color: white;
+  font-family: 'Arial', sans-serif;
+}
+
+.standings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.standings-header h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.season {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  background: #16213e;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: #e10600;
+  color: white;
+}
+
+.tab:hover:not(.active) {
+  background: #0f3460;
+  color: white;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 80px 100px;
+  padding: 10px 16px;
+  background: #0f3460;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+.standing-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 1fr 80px 100px;
+  padding: 14px 16px;
+  background: #16213e;
+  margin-bottom: 2px;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.standing-row:hover {
+  background: #0f3460;
+}
+
+.position {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.driver-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.team-name {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.wins {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.points {
+  font-weight: bold;
+  font-size: 18px;
+  color: #e10600;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 18px;
+  color: #888;
+}
