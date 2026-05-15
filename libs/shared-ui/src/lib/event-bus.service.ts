@@ -12,6 +12,8 @@ export enum BusEventType {
   SAFETY_CAR         = 'SAFETY_CAR',
   SESSION_STARTED    = 'SESSION_STARTED',
   SESSION_ENDED      = 'SESSION_ENDED',
+  AUTH_SUCCESS       = 'AUTH_SUCCESS',
+  AUTH_LOGOUT        = 'AUTH_LOGOUT',
 }
 
 // Event Shape

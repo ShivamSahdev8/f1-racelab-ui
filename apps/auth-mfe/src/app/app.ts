@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { Login} from './login/login';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
   selector: 'app-root',
+  standalone: true,
+  imports: [Login],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected title = 'auth-mfe';
-}
+export class App {}
