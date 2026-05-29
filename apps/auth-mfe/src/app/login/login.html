@@ -1,5 +1,6 @@
 <div class="login-container">
   <div class="login-card">
+
     <!-- Logo -->
     <div class="logo">🏎️ F1 RaceLab</div>
 
@@ -7,6 +8,9 @@
     <ng-container *ngIf="step() === 'success'">
       <h2>Welcome! ✅</h2>
       <p class="subtitle">You are now signed in!</p>
+      <button class="login-btn" (click)="onLogout()">
+        Sign Out
+      </button>
     </ng-container>
 
     <!-- New Password Required -->
@@ -14,7 +18,9 @@
       <h2>Set New Password</h2>
       <p class="subtitle">Please set a permanent password</p>
 
-      <div class="error-banner" *ngIf="error()">❌ {{ error() }}</div>
+      <div class="error-banner" *ngIf="error()">
+        ❌ {{ error() }}
+      </div>
 
       <div class="form">
         <div class="form-group">
@@ -24,23 +30,23 @@
             [(ngModel)]="name"
             placeholder="John Doe"
             class="input"
-            [disabled]="isLoading()"
-          />
+            [disabled]="isLoading()"/>
+        </div>
+
+        <div class="form-group">
           <label>New Password</label>
           <input
             type="password"
             [(ngModel)]="newPassword"
             placeholder="••••••••"
             class="input"
-            [disabled]="isLoading()"
-          />
+            [disabled]="isLoading()"/>
         </div>
 
         <button
           class="login-btn"
           (click)="onSetNewPassword()"
-          [disabled]="isLoading() || !newPassword"
-        >
+          [disabled]="isLoading() || !newPassword || !name">
           {{ isLoading() ? 'Setting password...' : 'Set Password' }}
         </button>
       </div>
@@ -51,7 +57,9 @@
       <h2>Welcome Back</h2>
       <p class="subtitle">Sign in to your account</p>
 
-      <div class="error-banner" *ngIf="error()">❌ {{ error() }}</div>
+      <div class="error-banner" *ngIf="error()">
+        ❌ {{ error() }}
+      </div>
 
       <div class="form">
         <div class="form-group">
@@ -61,8 +69,7 @@
             [(ngModel)]="email"
             placeholder="your@email.com"
             class="input"
-            [disabled]="isLoading()"
-          />
+            [disabled]="isLoading()"/>
         </div>
 
         <div class="form-group">
@@ -72,23 +79,26 @@
             [(ngModel)]="password"
             placeholder="••••••••"
             class="input"
-            [disabled]="isLoading()"
-          />
+            [disabled]="isLoading()"/>
         </div>
 
         <button
           class="login-btn"
           (click)="onLogin()"
-          [disabled]="isLoading() || !email || !password"
-        >
+          [disabled]="isLoading() || !email || !password">
           {{ isLoading() ? 'Signing in...' : 'Sign In' }}
         </button>
       </div>
 
       <p class="signup-link">
         Don't have an account?
-        <a (click)="showSignup()">Sign up</a>
+        <a routerLink="/auth/register">Sign up</a>
+      </p>
+
+      <p class="signup-link">
+        <a routerLink="/auth/forgot-password">Forgot password?</a>
       </p>
     </ng-container>
+
   </div>
 </div>

@@ -1,18 +1,17 @@
 import { Component, ChangeDetectionStrategy, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { signIn, confirmSignIn } from 'aws-amplify/auth';
-import { Amplify } from 'aws-amplify';
-import { cognitoConfig } from '../cognito.config';
+import { AuthService } from '../auth.service';
 import { EventBusService } from '@f1-racelab/shared-ui';
 import { BusEventType } from '@f1-racelab/shared-ui';
+import { RouterLink } from '@angular/router';
 
 type AuthStep = 'login' | 'new-password' | 'success';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -22,16 +21,26 @@ export class Login {
   email       = '';
   password    = '';
   newPassword = '';
-  name = '';
+  name        = '';
   isLoading   = signal(false);
   error       = signal<string | null>(null);
   step        = signal<AuthStep>('login');
 
   constructor(
+    private authService: AuthService,
     private eventBus: EventBusService,
     private cdr: ChangeDetectorRef
   ) {
-    Amplify.configure(cognitoConfig);
+    this.checkExistingSession();
+  }
+
+  async checkExistingSession(): Promise<void> {
+    const user = await this.authService.getCurrentUser();
+    if (user) {
+      this.step.set('success');
+      this.eventBus.emit(BusEventType.AUTH_SUCCESS, user.username);
+      this.cdr.detectChanges();
+    }
   }
 
   async onLogin(): Promise<void> {
@@ -40,16 +49,16 @@ export class Login {
     this.cdr.detectChanges();
 
     try {
-      const { isSignedIn, nextStep } = await signIn({
-        username: this.email,
-        password: this.password
-      });
+      const { isSignedIn, nextStep } = await this.authService.login(
+        this.email,
+        this.password
+      );
 
       if (isSignedIn) {
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
       } else if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
-        this.step.set('new-password');  // ← show new password form
+        this.step.set('new-password');
       }
 
     } catch (err: any) {
@@ -61,34 +70,34 @@ export class Login {
   }
 
   async onSetNewPassword(): Promise<void> {
-  this.isLoading.set(true);
-  this.error.set(null);
-  this.cdr.detectChanges();
-
-  try {
-    const { isSignedIn } = await confirmSignIn({
-      challengeResponse: this.newPassword,
-      options: {
-        userAttributes: {
-          name: this.email  // ← use email as name for now
-        }
-      }
-    });
-
-    if (isSignedIn) {
-      this.step.set('success');
-      this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
-    }
-
-  } catch (err: any) {
-    this.error.set(err.message || 'Failed to set new password');
-  } finally {
-    this.isLoading.set(false);
+    this.isLoading.set(true);
+    this.error.set(null);
     this.cdr.detectChanges();
-  }
-}
 
-  showSignup(): void {
-    this.eventBus.emit(BusEventType.AUTH_SUCCESS, 'show-signup');
+    try {
+      const { isSignedIn } = await this.authService.confirmNewPassword(
+        this.newPassword,
+        this.name
+      );
+
+      if (isSignedIn) {
+        this.step.set('success');
+        this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
+      }
+
+    } catch (err: any) {
+      this.error.set(err.message || 'Failed to set new password');
+    } finally {
+      this.isLoading.set(false);
+      this.cdr.detectChanges();
+    }
+  }
+
+  async onLogout(): Promise<void> {
+    await this.authService.logout();
+    this.step.set('login');
+    this.email = '';
+    this.password = '';
+    this.cdr.detectChanges();
   }
 }

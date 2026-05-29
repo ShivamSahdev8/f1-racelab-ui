@@ -6,13 +6,13 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { Amplify } from 'aws-amplify';
 import { cognitoConfig } from './cognito.config';
-import { appRoutes } from './app.routes';
+import  Routes  from './app.routes';
 
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes),
+    provideRouter(Routes),
     provideHttpClient()
   ],
 };
