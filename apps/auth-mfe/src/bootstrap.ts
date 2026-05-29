@@ -2,7 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
 import { Amplify } from 'aws-amplify';
-import { cognitoConfig } from './app/cognito.config';
+import { cognitoConfig } from '@f1-racelab/shared-ui';
 
 Amplify.configure(cognitoConfig);
 

@@ -8,6 +8,31 @@
     <li><a routerLink="/fantasy" routerLinkActive="active">Fantasy</a></li>
     <li><a routerLink="/predictor" routerLinkActive="active">Predictor</a></li>
     <li><a routerLink="/news" routerLinkActive="active">News</a></li>
-    <li><a routerLink="/auth" routerLinkActive="active">Login</a></li>
+
+    <!-- Show Login when not logged in -->
+    <li *ngIf="!(isLoggedIn$ | async)">
+      <a routerLink="/auth" routerLinkActive="active">Login</a>
+    </li>
+
+    <!-- Show User menu when logged in -->
+    <li *ngIf="isLoggedIn$ | async" class="user-menu">
+      <div class="user-trigger" (click)="toggleDropdown()">
+        <span class="user-name">👤 {{ (user$ | async)?.name }}</span>
+        <span class="user-team" *ngIf="(user$ | async)?.favouriteTeam">
+          {{ (user$ | async)?.favouriteTeam }}
+        </span>
+        <span class="dropdown-arrow">▾</span>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="dropdown" *ngIf="showDropdown">
+        <a routerLink="/auth" class="dropdown-item" (click)="showDropdown = false">
+          👤 Profile
+        </a>
+        <div class="dropdown-item logout" (click)="logout()">
+          🚪 Sign Out
+        </div>
+      </div>
+    </li>
   </ul>
 </nav>
