@@ -11,8 +11,10 @@ module.exports = withModuleFederationPlugin({
     "news-mfe": "http://localhost:4206/remoteEntry.js",
   },
 
-  shared: {
+   shared: {
     ...shareAll({ singleton: true, strictVersion: true, requiredVersion: 'auto' }),
+    'aws-amplify': { singleton: true, strictVersion: false },
+    'aws-amplify/auth': { singleton: true, strictVersion: false },
   },
 
 });

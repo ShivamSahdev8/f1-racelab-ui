@@ -1,38 +1,37 @@
 import { Injectable } from '@angular/core';
 import {
-  signIn,
-  signUp,
-  signOut,
-  confirmSignUp,
-  confirmSignIn,
-  resetPassword,
-  confirmResetPassword,
-  getCurrentUser,
-  fetchUserAttributes
+  signIn, signUp, signOut, confirmSignUp, confirmSignIn,
+  resetPassword, confirmResetPassword, getCurrentUser, fetchUserAttributes
 } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
-import { cognitoConfig } from './cognito.config';
+import { cognitoConfig } from '@f1-racelab/shared-ui';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  constructor() {
+  private ensureConfigured(): void {
     Amplify.configure(cognitoConfig);
   }
 
-  // ── Login ────────────────────────────────────────────
-  async login(email: string, password: string) {
-    await signOut().catch(() => {}); // clear existing session
-    return await signIn({ username: email, password });
+async login(email: string, password: string) {
+  console.log('1. About to configure Amplify');
+  Amplify.configure(cognitoConfig);
+  console.log('2. Amplify configured');
+  console.log('3. Amplify config check:', Amplify.getConfig());
+  
+  try {
+    await signOut().catch(() => {});
+    console.log('4. Previous session cleared');
+  } catch (e) {
+    console.log('4. No previous session');
   }
 
-  // ── Register ─────────────────────────────────────────
-  async register(
-    email: string,
-    password: string,
-    name: string,
-    favouriteTeam: string
-  ) {
+  console.log('5. About to signIn with:', email);
+  return await signIn({ username: email, password });
+}
+
+  async register(email: string, password: string, name: string, favouriteTeam: string) {
+    this.ensureConfigured();
     return await signUp({
       username: email,
       password,
@@ -46,30 +45,26 @@ export class AuthService {
     });
   }
 
-  // ── Confirm Email ────────────────────────────────────
   async confirmEmail(email: string, code: string) {
+    this.ensureConfigured();
     return await confirmSignUp({ username: email, confirmationCode: code });
   }
 
-  // ── Confirm New Password ─────────────────────────────
   async confirmNewPassword(newPassword: string, name: string) {
+    this.ensureConfigured();
     return await confirmSignIn({
       challengeResponse: newPassword,
       options: { userAttributes: { name } }
     });
   }
 
-  // ── Forgot Password ──────────────────────────────────
   async forgotPassword(email: string) {
+    this.ensureConfigured();
     return await resetPassword({ username: email });
   }
 
-  // ── Confirm Password Reset ───────────────────────────
-  async confirmForgotPassword(
-    email: string,
-    code: string,
-    newPassword: string
-  ) {
+  async confirmForgotPassword(email: string, code: string, newPassword: string) {
+    this.ensureConfigured();
     return await confirmResetPassword({
       username: email,
       confirmationCode: code,
@@ -77,13 +72,13 @@ export class AuthService {
     });
   }
 
-  // ── Logout ───────────────────────────────────────────
   async logout() {
+    this.ensureConfigured();
     return await signOut();
   }
 
-  // ── Get Current User ─────────────────────────────────
   async getCurrentUser() {
+    this.ensureConfigured();
     try {
       return await getCurrentUser();
     } catch {
@@ -91,8 +86,8 @@ export class AuthService {
     }
   }
 
-  // ── Get User Attributes ──────────────────────────────
   async getUserAttributes() {
+    this.ensureConfigured();
     try {
       return await fetchUserAttributes();
     } catch {
@@ -100,7 +95,6 @@ export class AuthService {
     }
   }
 
-  // ── Is Logged In ─────────────────────────────────────
   async isLoggedIn(): Promise<boolean> {
     const user = await this.getCurrentUser();
     return !!user;

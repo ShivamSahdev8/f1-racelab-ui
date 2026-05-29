@@ -2,41 +2,129 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #e10600;
-  padding: 0 24px;
-  height: 60px;
+  background: linear-gradient(135deg, #e10600 0%, #b00500 100%);
+  padding: 0 32px;
+  height: 56px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .navbar-brand {
   color: white;
-  font-size: 20px;
-  font-weight: bold;
-  letter-spacing: 1px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .navbar-links {
   display: flex;
   list-style: none;
-  gap: 24px;
+  gap: 4px;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 .navbar-links a {
-  color: white;
+  color: rgba(255,255,255,0.85);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 4px 0;
-  border-bottom: 2px solid transparent;
-}
-
-.navbar-links a.active {
-  border-bottom: 2px solid white;
+  letter-spacing: 1.2px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
 .navbar-links a:hover {
-  border-bottom: 2px solid rgba(255,255,255,0.6);
+  color: white;
+  background: rgba(255,255,255,0.15);
+}
+
+.navbar-links a.active {
+  color: white;
+  background: rgba(255,255,255,0.2);
+}
+
+/* User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-trigger:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.user-name {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-team {
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.25);
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-arrow {
+  color: rgba(255,255,255,0.7);
+  font-size: 10px;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #16213e;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+  min-width: 180px;
+  z-index: 100;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.dropdown-item {
+  display: block;
+  padding: 14px 18px;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #0f3460;
+  color: white;
+}
+
+.dropdown-item.logout {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  color: #e10600;
+}
+
+.dropdown-item.logout:hover {
+  background: rgba(225,6,0,0.1);
 }

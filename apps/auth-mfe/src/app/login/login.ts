@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, signal, ChangeDetectorRef } from '@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
-import { EventBusService } from '@f1-racelab/shared-ui';
+import { AuthStateService, EventBusService } from '@f1-racelab/shared-ui';
 import { BusEventType } from '@f1-racelab/shared-ui';
 import { RouterLink } from '@angular/router';
 
@@ -29,6 +29,7 @@ export class Login {
   constructor(
     private authService: AuthService,
     private eventBus: EventBusService,
+    private authState: AuthStateService,
     private cdr: ChangeDetectorRef
   ) {
     this.checkExistingSession();
@@ -37,6 +38,12 @@ export class Login {
   async checkExistingSession(): Promise<void> {
     const user = await this.authService.getCurrentUser();
     if (user) {
+      const attrs = await this.authService.getUserAttributes();
+      this.authState.setUser({
+        email: user.username,
+        name: attrs?.['name'] ?? user.username,
+        favouriteTeam: attrs?.['custom:favouriteTeam'] ?? ''
+      });
       this.step.set('success');
       this.eventBus.emit(BusEventType.AUTH_SUCCESS, user.username);
       this.cdr.detectChanges();
@@ -55,6 +62,12 @@ export class Login {
       );
 
       if (isSignedIn) {
+        const attrs = await this.authService.getUserAttributes();
+        this.authState.setUser({
+          email: this.email,
+          name: attrs?.['name'] ?? this.email,
+          favouriteTeam: attrs?.['custom:favouriteTeam'] ?? ''
+        });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
       } else if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
@@ -81,6 +94,11 @@ export class Login {
       );
 
       if (isSignedIn) {
+        this.authState.setUser({
+          email: this.email,
+          name: this.name,
+          favouriteTeam: ''
+        });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
       }
@@ -95,9 +113,13 @@ export class Login {
 
   async onLogout(): Promise<void> {
     await this.authService.logout();
+    this.authState.clearUser();
+    this.eventBus.emit(BusEventType.AUTH_LOGOUT, null);
+    window.location.reload(); 
     this.step.set('login');
     this.email = '';
     this.password = '';
     this.cdr.detectChanges();
+    
   }
 }

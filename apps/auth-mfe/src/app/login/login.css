@@ -9,12 +9,12 @@
 .login-card {
   background: #16213e;
   padding: 48px;
-  border-radius: 12px;
+  border-radius: 16px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.05);
 }
-
 .logo {
   font-size: 24px;
   font-weight: bold;
