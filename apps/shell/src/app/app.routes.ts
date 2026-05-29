@@ -5,12 +5,12 @@ export const routes: Routes = [
 
   {
     path: 'auth',
-    loadComponent: () =>
+    loadChildren: () =>
       loadRemoteModule({
         type: 'module',
         remoteEntry: 'http://localhost:4201/remoteEntry.js',
-        exposedModule: './Component'
-      }).then(m => m.App)
+        exposedModule: './Module'
+      }).then(m => m.default)
   },
   {
     path: 'live',
