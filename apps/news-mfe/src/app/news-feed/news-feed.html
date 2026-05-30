@@ -1,0 +1,43 @@
+<div class="news-feed">
+
+  <!-- Header -->
+  <div class="news-header">
+    <h2>📰 F1 News</h2>
+    <p class="subtitle">Latest from the paddock</p>
+  </div>
+
+  <!-- News Grid -->
+  <ng-container *ngIf="news$ | async as articles; else loading">
+    <div class="news-grid">
+      <div
+        class="news-card"
+        *ngFor="let article of articles"
+        (click)="openArticle(article.link)">
+
+        <!-- Thumbnail -->
+        <div
+          class="news-thumbnail"
+          *ngIf="article.thumbnail"
+          [style.backgroundImage]="'url(' + article.thumbnail + ')'">
+        </div>
+
+        <!-- Content -->
+        <div class="news-content">
+          <span class="news-meta">
+            <span class="news-source">{{ article.source }}</span>
+            <span class="news-date">{{ getTimeAgo(article.pubDate) }}</span>
+          </span>
+          <h3 class="news-title">{{ article.title }}</h3>
+          <p class="news-description">{{ article.description }}</p>
+        </div>
+
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Loading -->
+  <ng-template #loading>
+    <div class="loading">⏳ Loading latest F1 news...</div>
+  </ng-template>
+
+</div>
