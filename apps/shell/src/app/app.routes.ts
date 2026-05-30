@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/module-federation';
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-
   {
     path: 'auth',
     loadChildren: () =>
@@ -32,6 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'fantasy',
+    canActivate: [authGuard],  // 🔒 protected
     loadComponent: () =>
       loadRemoteModule({
         type: 'module',
@@ -41,6 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'predictor',
+    canActivate: [authGuard],  // 🔒 protected
     loadComponent: () =>
       loadRemoteModule({
         type: 'module',
