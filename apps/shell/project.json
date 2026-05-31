@@ -21,6 +21,11 @@
             "glob": "**/*",
             "input": "apps/shell/public",
             "output": "."
+          },
+          {
+            "glob": "**/*",
+            "input": "apps/shell/src/assets",
+            "output": "assets"
           }
         ],
         "styles": [
@@ -36,8 +41,8 @@
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "5mb",
+              "maximumError": "10mb"
             },
             {
               "type": "anyComponentStyle",

@@ -1,0 +1,8 @@
+{
+  "auth-mfe": "https://d7echn6hj4ca9.cloudfront.net/auth-mfe/remoteEntry.js",
+  "live-mfe": "https://d7echn6hj4ca9.cloudfront.net/live-mfe/remoteEntry.js",
+  "stats-mfe": "https://d7echn6hj4ca9.cloudfront.net/stats-mfe/remoteEntry.js",
+  "fantasy-mfe": "https://d7echn6hj4ca9.cloudfront.net/fantasy-mfe/remoteEntry.js",
+  "predictor-mfe": "https://d7echn6hj4ca9.cloudfront.net/predictor-mfe/remoteEntry.js",
+  "news-mfe": "https://d7echn6hj4ca9.cloudfront.net/news-mfe/remoteEntry.js"
+}
