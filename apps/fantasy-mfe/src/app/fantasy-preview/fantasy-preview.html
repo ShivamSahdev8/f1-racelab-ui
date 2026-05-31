@@ -1,0 +1,132 @@
+<div class="fantasy-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h2>🏆 Fantasy League</h2>
+    <p class="subtitle">Build your dream F1 team</p>
+  </div>
+
+  <!-- LOGGED IN VIEW -->
+  <ng-container *ngIf="isLoggedIn$ | async; else guestView">
+    <div class="welcome-section">
+      <div class="welcome-card">
+        <div class="welcome-icon">🏎️</div>
+        <h2>Welcome to Fantasy League, {{ (user$ | async)?.name }}!</h2>
+        <p class="welcome-team" *ngIf="(user$ | async)?.favouriteTeam">
+          {{ (user$ | async)?.favouriteTeam }} Fan
+        </p>
+        <p class="welcome-message">
+          Your fantasy dashboard is coming soon. You'll be able to build your dream team,
+          compete with fans worldwide, and track your performance throughout the season.
+        </p>
+
+        <div class="coming-soon-features">
+          <div class="feature-card">
+            <span class="feature-icon">💰</span>
+            <h4>Build Your Team</h4>
+            <p>Pick 5 drivers within a $100M budget</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">📊</span>
+            <h4>Live Scoring</h4>
+            <p>Watch points update during each race</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">🏆</span>
+            <h4>Leaderboard</h4>
+            <p>Compete in weekly & season rankings</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">🔄</span>
+            <h4>Transfers</h4>
+            <p>Swap drivers before each Grand Prix</p>
+          </div>
+        </div>
+
+        <div class="coming-badge">
+          🚧 Coming Soon — Under Development
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- GUEST VIEW -->
+  <ng-template #guestView>
+    <div class="preview-wrapper">
+
+      <!-- Budget Bar -->
+      <div class="budget-bar blurred">
+        <div class="budget-info">
+          <span class="budget-label">BUDGET</span>
+          <span class="budget-amount">$100.0M</span>
+        </div>
+        <div class="budget-progress">
+          <div class="budget-fill" style="width: 65%"></div>
+        </div>
+        <div class="budget-info">
+          <span class="budget-label">REMAINING</span>
+          <span class="budget-amount">$35.0M</span>
+        </div>
+      </div>
+
+      <!-- My Team Section -->
+      <div class="section blurred">
+        <h3>Your Team (0/5 drivers)</h3>
+        <div class="empty-slots">
+          <div class="slot" *ngFor="let i of [1,2,3,4,5]">
+            <span class="slot-icon">➕</span>
+            <span class="slot-text">Pick Driver</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Available Drivers -->
+      <div class="section blurred">
+        <h3>Available Drivers</h3>
+        <div class="drivers-grid">
+          <div
+            class="driver-card"
+            *ngFor="let driver of previewDrivers"
+            [style.border-left-color]="driver.color">
+            <div class="driver-info">
+              <span class="driver-name">{{ driver.name }}</span>
+              <span class="driver-team">{{ driver.team }}</span>
+            </div>
+            <div class="driver-stats">
+              <div class="stat">
+                <span class="stat-value">${{ driver.price }}M</span>
+                <span class="stat-label">Price</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{{ driver.points }}</span>
+                <span class="stat-label">Points</span>
+              </div>
+            </div>
+            <button class="pick-btn">Pick</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Overlay -->
+      <div class="login-overlay">
+        <div class="overlay-card">
+          <div class="overlay-icon">🏎️</div>
+          <h2>Build Your Fantasy Team</h2>
+          <p>Pick 5 drivers within your $100M budget and compete with fans worldwide</p>
+          <div class="overlay-features">
+            <span>💰 $100M budget to build your team</span>
+            <span>📊 Live scoring during races</span>
+            <span>🏆 Weekly & season leaderboards</span>
+            <span>🔄 Transfers before each race</span>
+          </div>
+          <div class="overlay-actions">
+            <a href="/auth/login" class="btn-primary">Sign In to Play</a>
+            <a href="/auth/register" class="btn-secondary">Create Free Account</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+
+</div>

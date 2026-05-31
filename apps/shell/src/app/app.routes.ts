@@ -32,7 +32,7 @@ export const routes: Routes = [
   },
   {
     path: 'fantasy',
-    canActivate: [authGuard],
+   // canActivate: [authGuard],
     loadComponent: () =>
       loadRemoteModule({
         type: 'manifest',
@@ -42,7 +42,7 @@ export const routes: Routes = [
   },
   {
     path: 'predictor',
-    canActivate: [authGuard],
+   // canActivate: [authGuard],
     loadComponent: () =>
       loadRemoteModule({
         type: 'manifest',
