@@ -22,8 +22,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build all apps
-        run: npx nx run-many --target=build --all --parallel
+      - name: Build Shell
+        run: npx nx build shell --base-href /shell/
+
+      - name: Build auth-mfe
+        run: npx nx build auth-mfe --base-href /auth-mfe/
+
+      - name: Build live-mfe
+        run: npx nx build live-mfe --base-href /live-mfe/
+
+      - name: Build stats-mfe
+        run: npx nx build stats-mfe --base-href /stats-mfe/
+
+      - name: Build fantasy-mfe
+        run: npx nx build fantasy-mfe --base-href /fantasy-mfe/
+
+      - name: Build predictor-mfe
+        run: npx nx build predictor-mfe --base-href /predictor-mfe/
+
+      - name: Build news-mfe
+        run: npx nx build news-mfe --base-href /news-mfe/
 
       - name: Copy production manifest
         run: cp apps/shell/src/assets/module-federation.manifest.prod.json dist/apps/shell/assets/module-federation.manifest.json
