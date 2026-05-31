@@ -1,0 +1,60 @@
+name: Deploy F1 RaceLab to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all apps
+        run: npx nx run-many --target=build --all --parallel
+
+      - name: Copy production manifest
+        run: cp apps/shell/src/assets/module-federation.manifest.prod.json dist/apps/shell/assets/module-federation.manifest.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Deploy Shell to S3
+        run: aws s3 sync dist/apps/shell/ s3://f1-racelab-ui/shell/ --delete
+
+      - name: Deploy auth-mfe to S3
+        run: aws s3 sync dist/apps/auth-mfe/ s3://f1-racelab-ui/auth-mfe/ --delete
+
+      - name: Deploy live-mfe to S3
+        run: aws s3 sync dist/apps/live-mfe/ s3://f1-racelab-ui/live-mfe/ --delete
+
+      - name: Deploy stats-mfe to S3
+        run: aws s3 sync dist/apps/stats-mfe/ s3://f1-racelab-ui/stats-mfe/ --delete
+
+      - name: Deploy fantasy-mfe to S3
+        run: aws s3 sync dist/apps/fantasy-mfe/ s3://f1-racelab-ui/fantasy-mfe/ --delete
+
+      - name: Deploy predictor-mfe to S3
+        run: aws s3 sync dist/apps/predictor-mfe/ s3://f1-racelab-ui/predictor-mfe/ --delete
+
+      - name: Deploy news-mfe to S3
+        run: aws s3 sync dist/apps/news-mfe/ s3://f1-racelab-ui/news-mfe/ --delete
+
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id E22VT45TW347DQ --paths "/*"
