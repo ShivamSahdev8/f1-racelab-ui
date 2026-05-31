@@ -1,14 +1,14 @@
 import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/module-federation';
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-
   {
     path: 'auth',
     loadChildren: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4201/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'auth-mfe',
         exposedModule: './Module'
       }).then(m => m.default)
   },
@@ -16,8 +16,8 @@ export const routes: Routes = [
     path: 'live',
     loadComponent: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4202/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'live-mfe',
         exposedModule: './Component'
       }).then(m => m.App)
   },
@@ -25,26 +25,28 @@ export const routes: Routes = [
     path: 'stats',
     loadComponent: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4203/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'stats-mfe',
         exposedModule: './Component'
       }).then(m => m.App)
   },
   {
     path: 'fantasy',
+    canActivate: [authGuard],
     loadComponent: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4204/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'fantasy-mfe',
         exposedModule: './Component'
       }).then(m => m.App)
   },
   {
     path: 'predictor',
+    canActivate: [authGuard],
     loadComponent: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4205/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'predictor-mfe',
         exposedModule: './Component'
       }).then(m => m.App)
   },
@@ -52,8 +54,8 @@ export const routes: Routes = [
     path: 'news',
     loadComponent: () =>
       loadRemoteModule({
-        type: 'module',
-        remoteEntry: 'http://localhost:4206/remoteEntry.js',
+        type: 'manifest',
+        remoteName: 'news-mfe',
         exposedModule: './Component'
       }).then(m => m.App)
   },
