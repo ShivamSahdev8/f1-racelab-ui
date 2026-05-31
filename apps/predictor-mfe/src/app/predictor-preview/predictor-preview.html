@@ -1,0 +1,144 @@
+<div class="predictor-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h2>🔮 Race Predictor</h2>
+    <p class="subtitle">Predict race outcomes and compete with the community</p>
+  </div>
+
+  <!-- LOGGED IN VIEW -->
+  <ng-container *ngIf="isLoggedIn$ | async; else guestView">
+    <div class="welcome-section">
+      <div class="welcome-card">
+        <div class="welcome-icon">🔮</div>
+        <h2>Welcome to Race Predictor, {{ (user$ | async)?.name }}!</h2>
+        <p class="welcome-team" *ngIf="(user$ | async)?.favouriteTeam">
+          {{ (user$ | async)?.favouriteTeam }} Fan
+        </p>
+        <p class="welcome-message">
+          Your prediction dashboard is coming soon. You'll be able to predict race outcomes,
+          compete in prediction leagues, and prove you're the ultimate F1 strategist.
+        </p>
+
+        <div class="coming-soon-features">
+          <div class="feature-card">
+            <span class="feature-icon">🏁</span>
+            <h4>Race Predictions</h4>
+            <p>Pick the top 5 finishers for every Grand Prix</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">📈</span>
+            <h4>Accuracy Tracker</h4>
+            <p>Track how your predictions compare to results</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">👥</span>
+            <h4>Community Polls</h4>
+            <p>See how the community is predicting each race</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">🤖</span>
+            <h4>AI Predictions</h4>
+            <p>Compare your picks against AI-powered analysis</p>
+          </div>
+        </div>
+
+        <div class="coming-badge">
+          🚧 Coming Soon — Under Development
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- GUEST VIEW -->
+  <ng-template #guestView>
+    <div class="preview-wrapper">
+
+      <!-- Upcoming Race Card -->
+      <div class="race-card blurred">
+        <div class="race-flag">{{ upcomingRace.flag }}</div>
+        <div class="race-info">
+          <span class="race-round">ROUND {{ upcomingRace.round }}</span>
+          <h3>{{ upcomingRace.name }}</h3>
+          <span class="race-circuit">{{ upcomingRace.circuit }}</span>
+          <span class="race-date">{{ upcomingRace.date }}</span>
+        </div>
+        <div class="race-countdown">
+          <div class="countdown-item">
+            <span class="countdown-value">2</span>
+            <span class="countdown-label">Days</span>
+          </div>
+          <div class="countdown-item">
+            <span class="countdown-value">14</span>
+            <span class="countdown-label">Hours</span>
+          </div>
+          <div class="countdown-item">
+            <span class="countdown-value">32</span>
+            <span class="countdown-label">Mins</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Stats -->
+      <div class="stats-row blurred">
+        <div class="stat-card">
+          <span class="stat-number">{{ communityStats.totalPredictions | number }}</span>
+          <span class="stat-text">Predictions Made</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">{{ communityStats.accuracy }}%</span>
+          <span class="stat-text">Community Accuracy</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">#1</span>
+          <span class="stat-text">{{ communityStats.topPredictor }}</span>
+        </div>
+      </div>
+
+      <!-- Prediction Table -->
+      <div class="prediction-section blurred">
+        <h3>Your Prediction — Top 5 Finishers</h3>
+        <div class="prediction-table">
+          <div class="table-header">
+            <span>POS</span>
+            <span>DRIVER</span>
+            <span>TEAM</span>
+            <span>ODDS</span>
+            <span></span>
+          </div>
+          <div
+            class="prediction-row"
+            *ngFor="let p of previewPredictions"
+            [style.border-left-color]="p.color">
+            <span class="pos">P{{ p.position }}</span>
+            <span class="driver">{{ p.driver }}</span>
+            <span class="team">{{ p.team }}</span>
+            <span class="odds">x{{ p.odds }}</span>
+            <button class="select-btn">Select</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Overlay -->
+      <div class="login-overlay">
+        <div class="overlay-card">
+          <div class="overlay-icon">🔮</div>
+          <h2>Predict the Race</h2>
+          <p>Pick the top 5 finishers and see how your predictions compare with thousands of fans</p>
+          <div class="overlay-features">
+            <span>🏁 Predict top 5 for every race</span>
+            <span>📈 Track your prediction accuracy</span>
+            <span>👥 Community voting & leaderboard</span>
+            <span>🏆 Season-long prediction championship</span>
+          </div>
+          <div class="overlay-actions">
+            <a href="/auth/login" class="btn-primary">Sign In to Predict</a>
+            <a href="/auth/register" class="btn-secondary">Create Free Account</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+
+</div>
