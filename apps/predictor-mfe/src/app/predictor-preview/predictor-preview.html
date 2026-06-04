@@ -1,93 +1,430 @@
 <div class="predictor-page">
-
   <!-- Header -->
   <div class="page-header">
     <h2>🔮 Race Predictor</h2>
-    <p class="subtitle">Predict race outcomes and compete with the community</p>
+    <p class="subtitle">AI-powered race predictions using real F1 data</p>
   </div>
 
   <!-- LOGGED IN VIEW -->
   <ng-container *ngIf="isLoggedIn$ | async; else guestView">
-    <div class="welcome-section">
-      <div class="welcome-card">
-        <div class="welcome-icon">🔮</div>
-        <h2>Welcome to Race Predictor, {{ (user$ | async)?.name }}!</h2>
-        <p class="welcome-team" *ngIf="(user$ | async)?.favouriteTeam">
-          {{ (user$ | async)?.favouriteTeam }} Fan
-        </p>
-        <p class="welcome-message">
-          Your prediction dashboard is coming soon. You'll be able to predict race outcomes,
-          compete in prediction leagues, and prove you're the ultimate F1 strategist.
-        </p>
+    <!-- View Tabs -->
+    <div class="view-tabs">
+      <button
+        class="view-tab"
+        [class.active]="activeView === 'overview'"
+        (click)="setView('overview')"
+      >
+        🏁 Race Overview
+      </button>
+      <button
+        class="view-tab"
+        [class.active]="activeView === 'simulator'"
+        (click)="setView('simulator')"
+      >
+        🔮 Strategy Simulator
+      </button>
+    </div>
 
-        <div class="coming-soon-features">
-          <div class="feature-card">
-            <span class="feature-icon">🏁</span>
-            <h4>Race Predictions</h4>
-            <p>Pick the top 5 finishers for every Grand Prix</p>
+    <!-- ===== OVERVIEW VIEW ===== -->
+    <ng-container *ngIf="activeView === 'overview'">
+      <!-- Loading -->
+      <div class="overview-loading" *ngIf="overviewLoading()">
+        <div class="loading-icon">🤖</div>
+        <p>AI is analyzing the upcoming race...</p>
+        <small>Fetching 2026 standings + circuit history</small>
+      </div>
+
+      <!-- Error -->
+      <div class="overview-error" *ngIf="overviewError()">
+        <p>❌ {{ overviewError() }}</p>
+        <button class="retry-btn" (click)="loadOverview()">Retry</button>
+      </div>
+
+      <!-- Overview Content -->
+      <ng-container *ngIf="overview() as ov">
+        <!-- Race Info Banner -->
+        <div class="race-banner">
+          <div class="race-details">
+            <span class="race-round">ROUND {{ ov.race?.round }}</span>
+            <h3>{{ ov.race?.raceName }}</h3>
+            <span class="race-circuit"
+              >{{ ov.race?.Circuit?.circuitName }}</span
+            >
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">📈</span>
-            <h4>Accuracy Tracker</h4>
-            <p>Track how your predictions compare to results</p>
-          </div>
-          <div class="feature-card">
-            <span class="feature-icon">👥</span>
-            <h4>Community Polls</h4>
-            <p>See how the community is predicting each race</p>
-          </div>
-          <div class="feature-card">
-            <span class="feature-icon">🤖</span>
-            <h4>AI Predictions</h4>
-            <p>Compare your picks against AI-powered analysis</p>
+          <div class="race-stats">
+            <div class="race-stat">
+              <span class="stat-val">{{ ov.prediction.safetyCarChance }}%</span>
+              <span class="stat-lbl">🚗 Safety Car</span>
+            </div>
+            <div class="race-stat">
+              <span class="stat-val">{{ ov.prediction.rainChance }}%</span>
+              <span class="stat-lbl">🌧️ Rain</span>
+            </div>
           </div>
         </div>
 
-        <div class="coming-badge">
-          🚧 Coming Soon — Under Development
+        <!-- Circuit Visual for upcoming race -->
+        <div class="race-circuit-visual">
+          <app-circuit-visual
+            [circuit]="getRaceCircuit(overview()?.race?.raceName)"
+            [teamColor]="'#e10600'"
+            [showStats]="true"
+          >
+          </app-circuit-visual>
+        </div>
+
+        <!-- Circuit Insight -->
+        <div class="insight-banner">💡 {{ ov.prediction.circuitInsight }}</div>
+
+        <!-- Top Contenders Grid -->
+        <h3 class="section-title">🏆 Top Contenders</h3>
+        <div class="contenders-grid">
+          <div
+            class="contender-card"
+            *ngFor="let c of ov.prediction.contenders; let i = index"
+            [style.border-top-color]="getTeamColor(c.team)"
+          >
+            <!-- Position Badge -->
+            <div
+              class="contender-position"
+              [class.p1]="i === 0"
+              [class.p2]="i === 1"
+              [class.p3]="i === 2"
+            >
+              P{{ c.position }}
+            </div>
+
+            <!-- Win Chance Ring -->
+            <div class="chance-ring">
+              <svg viewBox="0 0 80 80">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  fill="none"
+                  stroke="#1a4a8a"
+                  stroke-width="5"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  fill="none"
+                  [attr.stroke]="getWinChanceColor(c.winChance)"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  [style.strokeDasharray]="(c.winChance / 100 * 213.6) + ' 213.6'"
+                  transform="rotate(-90 40 40)"
+                  class="ring-fill"
+                />
+                <text
+                  x="40"
+                  y="38"
+                  text-anchor="middle"
+                  fill="white"
+                  font-size="16"
+                  font-weight="800"
+                >
+                  {{ c.winChance }}%
+                </text>
+                <text
+                  x="40"
+                  y="52"
+                  text-anchor="middle"
+                  fill="#888"
+                  font-size="8"
+                >
+                  WIN
+                </text>
+              </svg>
+            </div>
+
+            <!-- Driver Info -->
+            <div class="contender-name">{{ c.driver }}</div>
+            <div class="contender-team" [style.color]="getTeamColor(c.team)">
+              {{ c.team }}
+            </div>
+
+            <!-- Form Badge -->
+            <div class="form-badge" [style.color]="getFormColor(c.form)">
+              {{ getFormEmoji(c.form) }} {{ c.form }}
+            </div>
+
+            <!-- Reason -->
+            <div class="contender-reason">{{ c.reason }}</div>
+          </div>
+        </div>
+
+        <!-- Key Battle -->
+        <div class="battle-card">
+          <h4>⚔️ Key Battle to Watch</h4>
+          <p>{{ ov.prediction.keyBattle }}</p>
+        </div>
+
+        <!-- Dark Horse -->
+        <div class="darkhorse-card">
+          <h4>🐴 Dark Horse</h4>
+          <div class="darkhorse-info">
+            <span class="darkhorse-name"
+              >{{ ov.prediction.darkHorse.driver }}</span
+            >
+            <span
+              class="darkhorse-team"
+              [style.color]="getTeamColor(ov.prediction.darkHorse.team)"
+            >
+              {{ ov.prediction.darkHorse.team }}
+            </span>
+          </div>
+          <p>{{ ov.prediction.darkHorse.reason }}</p>
+        </div>
+
+        <!-- CTA to Simulator -->
+        <div class="simulator-cta" (click)="setView('simulator')">
+          🔮 Try the Strategy Simulator — see how tyre choice and weather affect
+          the outcome →
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <!-- ===== SIMULATOR VIEW ===== -->
+    <ng-container *ngIf="activeView === 'simulator'">
+      <!-- F1 Car Visual -->
+      <app-f1-car-visual
+        [driver]="selectedDriver"
+        [tyres]="selectedTyres"
+        [weather]="selectedWeather"
+        [downforce]="selectedDownforce"
+        [isLoading]="isLoading()"
+        [winChance]="prediction()?.winChance || 0"
+      >
+      </app-f1-car-visual>
+
+      <div class="predictor-layout">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+          <h3>Configure Prediction</h3>
+
+          <div class="form-group">
+            <label>🏎️ Driver</label>
+            <select [(ngModel)]="selectedDriver" class="select">
+              <option value="">Select Driver</option>
+              <option *ngFor="let d of drivers" [value]="d">{{ d }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>🏁 Circuit</label>
+            <select [(ngModel)]="selectedCircuit" class="select">
+              <option value="">Select Circuit</option>
+              <option *ngFor="let c of circuits" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Tyre Compound</label>
+            <div class="option-buttons">
+              <button
+                *ngFor="let t of tyreOptions"
+                class="option-btn"
+                [class.active]="selectedTyres === t"
+                (click)="selectedTyres = t"
+              >
+                {{ getTyreEmoji(t) }} {{ t }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>🌤️ Weather</label>
+            <div class="option-buttons">
+              <button
+                *ngFor="let w of weatherOptions"
+                class="option-btn"
+                [class.active]="selectedWeather === w"
+                (click)="selectedWeather = w"
+              >
+                {{ w }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>⚙️ Downforce</label>
+            <div class="option-buttons">
+              <button
+                *ngFor="let d of downforceOptions"
+                class="option-btn"
+                [class.active]="selectedDownforce === d"
+                (click)="selectedDownforce = d"
+              >
+                {{ d }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>🏁 Strategy</label>
+            <div class="option-buttons">
+              <button
+                *ngFor="let s of strategyOptions"
+                class="option-btn"
+                [class.active]="selectedStrategy === s"
+                (click)="selectedStrategy = s"
+              >
+                {{ s }}
+              </button>
+            </div>
+          </div>
+
+          <button
+            class="predict-btn"
+            (click)="onPredict()"
+            [disabled]="isLoading() || !selectedDriver || !selectedCircuit"
+          >
+            {{ isLoading() ? '🤖 Analyzing...' : '🔮 Get AI Prediction' }}
+          </button>
+
+          <div class="error" *ngIf="error()">❌ {{ error() }}</div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="results-panel">
+          <!-- Circuit Visual when circuit is selected -->
+          <app-circuit-visual
+            *ngIf="selectedCircuit"
+            [circuit]="selectedCircuit"
+            [teamColor]="getDriverTeamColor(selectedDriver)"
+            [showStats]="true"
+            style="margin-bottom: 16px"
+          >
+          </app-circuit-visual>
+
+          <!-- rest of results panel stays same -->
+          <div class="loading-state" *ngIf="isLoading()">
+            <div class="loading-spinner">🤖</div>
+            <p>AI is analyzing race data...</p>
+          </div>
+
+          <div class="empty-state" *ngIf="!isLoading() && !prediction()">
+            <div class="empty-icon">🏎️</div>
+            <h3>Select a driver and circuit</h3>
+            <p>Configure your race setup and let AI predict the outcome</p>
+          </div>
+
+          <ng-container *ngIf="prediction() as p">
+            <div class="chances-grid">
+              <div class="chance-card">
+                <div
+                  class="chance-value"
+                  [style.color]="getWinChanceColor(p.winChance)"
+                >
+                  {{ p.winChance }}%
+                </div>
+                <div class="chance-label">Win Chance</div>
+                <div class="chance-bar">
+                  <div
+                    class="chance-fill"
+                    [style.width.%]="p.winChance"
+                    [style.background]="getWinChanceColor(p.winChance)"
+                  ></div>
+                </div>
+              </div>
+              <div class="chance-card">
+                <div
+                  class="chance-value"
+                  [style.color]="getWinChanceColor(p.podiumChance)"
+                >
+                  {{ p.podiumChance }}%
+                </div>
+                <div class="chance-label">Podium Chance</div>
+                <div class="chance-bar">
+                  <div
+                    class="chance-fill"
+                    [style.width.%]="p.podiumChance"
+                    [style.background]="getWinChanceColor(p.podiumChance)"
+                  ></div>
+                </div>
+              </div>
+              <div class="chance-card">
+                <div class="chance-value" style="color: #ffd700">
+                  P{{ p.expectedPosition | number:'1.0-0' }}
+                </div>
+                <div class="chance-label">Expected Position</div>
+              </div>
+              <div class="chance-card">
+                <div class="chance-value" style="color: #e10600">
+                  {{ p.expectedPoints }}
+                </div>
+                <div class="chance-label">Expected Points</div>
+              </div>
+            </div>
+
+            <div class="risk-card">
+              <span class="risk-label">Risk Factor:</span>
+              <span
+                class="risk-value"
+                [style.color]="getRiskColor(p.riskFactor)"
+                >● {{ p.riskFactor }}</span
+              >
+            </div>
+
+            <div class="insight-card">
+              <h4>🤖 AI Analysis</h4>
+              <p>{{ p.insight }}</p>
+            </div>
+
+            <div class="optimal-card">
+              <h4>⚡ Optimal Setup</h4>
+              <div class="optimal-details">
+                <span
+                  >{{ getTyreEmoji(p.optimalSetup.tyres) }} {{
+                  p.optimalSetup.tyres }}</span
+                >
+                <span>🏁 {{ p.optimalSetup.strategy }}</span>
+                <span>⚙️ {{ p.optimalSetup.downforce }}</span>
+                <span
+                  class="optimal-win"
+                  [style.color]="getWinChanceColor(p.optimalSetup.winChance)"
+                  >{{ p.optimalSetup.winChance }}% win</span
+                >
+              </div>
+              <p class="optimal-explanation">
+                {{ p.optimalSetup.explanation }}
+              </p>
+            </div>
+
+            <div class="fun-fact-card">
+              <h4>💡 Fun Fact</h4>
+              <p>{{ p.funFact }}</p>
+            </div>
+          </ng-container>
         </div>
       </div>
-    </div>
+    </ng-container>
   </ng-container>
 
   <!-- GUEST VIEW -->
   <ng-template #guestView>
     <div class="preview-wrapper">
-
-      <!-- Upcoming Race Card -->
       <div class="race-card blurred">
         <div class="race-flag">{{ upcomingRace.flag }}</div>
         <div class="race-info">
           <span class="race-round">ROUND {{ upcomingRace.round }}</span>
           <h3>{{ upcomingRace.name }}</h3>
           <span class="race-circuit">{{ upcomingRace.circuit }}</span>
-          <span class="race-date">{{ upcomingRace.date }}</span>
-        </div>
-        <div class="race-countdown">
-          <div class="countdown-item">
-            <span class="countdown-value">2</span>
-            <span class="countdown-label">Days</span>
-          </div>
-          <div class="countdown-item">
-            <span class="countdown-value">14</span>
-            <span class="countdown-label">Hours</span>
-          </div>
-          <div class="countdown-item">
-            <span class="countdown-value">32</span>
-            <span class="countdown-label">Mins</span>
-          </div>
         </div>
       </div>
 
-      <!-- Community Stats -->
       <div class="stats-row blurred">
         <div class="stat-card">
-          <span class="stat-number">{{ communityStats.totalPredictions | number }}</span>
+          <span class="stat-number"
+            >{{ communityStats.totalPredictions | number }}</span
+          >
           <span class="stat-text">Predictions Made</span>
         </div>
         <div class="stat-card">
           <span class="stat-number">{{ communityStats.accuracy }}%</span>
-          <span class="stat-text">Community Accuracy</span>
+          <span class="stat-text">Accuracy</span>
         </div>
         <div class="stat-card">
           <span class="stat-number">#1</span>
@@ -95,50 +432,25 @@
         </div>
       </div>
 
-      <!-- Prediction Table -->
-      <div class="prediction-section blurred">
-        <h3>Your Prediction — Top 5 Finishers</h3>
-        <div class="prediction-table">
-          <div class="table-header">
-            <span>POS</span>
-            <span>DRIVER</span>
-            <span>TEAM</span>
-            <span>ODDS</span>
-            <span></span>
-          </div>
-          <div
-            class="prediction-row"
-            *ngFor="let p of previewPredictions"
-            [style.border-left-color]="p.color">
-            <span class="pos">P{{ p.position }}</span>
-            <span class="driver">{{ p.driver }}</span>
-            <span class="team">{{ p.team }}</span>
-            <span class="odds">x{{ p.odds }}</span>
-            <button class="select-btn">Select</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Login Overlay -->
       <div class="login-overlay">
         <div class="overlay-card">
           <div class="overlay-icon">🔮</div>
-          <h2>Predict the Race</h2>
-          <p>Pick the top 5 finishers and see how your predictions compare with thousands of fans</p>
+          <h2>AI Race Predictor</h2>
+          <p>Get AI-powered predictions based on real F1 data</p>
           <div class="overlay-features">
-            <span>🏁 Predict top 5 for every race</span>
-            <span>📈 Track your prediction accuracy</span>
-            <span>👥 Community voting & leaderboard</span>
-            <span>🏆 Season-long prediction championship</span>
+            <span>🤖 Powered by Claude AI + Real F1 Data</span>
+            <span>🔴🟡⚪ Tyre strategy simulator</span>
+            <span>🌤️ Weather impact analysis</span>
+            <span>⚡ Optimal setup recommendations</span>
           </div>
           <div class="overlay-actions">
             <a href="/auth/login" class="btn-primary">Sign In to Predict</a>
-            <a href="/auth/register" class="btn-secondary">Create Free Account</a>
+            <a href="/auth/register" class="btn-secondary"
+              >Create Free Account</a
+            >
           </div>
         </div>
       </div>
-
     </div>
   </ng-template>
-
 </div>

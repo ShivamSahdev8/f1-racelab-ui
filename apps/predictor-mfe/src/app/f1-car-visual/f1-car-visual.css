@@ -1,0 +1,227 @@
+.car-visual {
+  background: linear-gradient(180deg, #0a0a1a 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 24px 24px 16px 24px;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  transition: background 0.5s;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.car-visual.damp {
+  background: linear-gradient(180deg, #1a2a3e 0%, #162030 100%);
+}
+
+.car-visual.rain {
+  background: linear-gradient(180deg, #0a1525 0%, #0f1a2e 100%);
+}
+
+/* Weather */
+.weather-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.raindrop {
+  position: absolute;
+  width: 2px;
+  height: 15px;
+  background: linear-gradient(180deg, transparent, rgba(100, 150, 255, 0.5));
+  border-radius: 2px;
+  animation: rain 0.8s linear infinite;
+}
+
+.car-visual.rain .raindrop {
+  height: 25px;
+  width: 2px;
+  animation-duration: 0.5s;
+  background: linear-gradient(180deg, transparent, rgba(100, 150, 255, 0.7));
+}
+
+@keyframes rain {
+  0% { top: -20px; opacity: 0; }
+  20% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.sun {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 28px;
+  animation: sunGlow 3s ease-in-out infinite;
+}
+
+.cloud {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 28px;
+  animation: cloudDrift 4s ease-in-out infinite;
+}
+
+@keyframes sunGlow {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.15); filter: brightness(1.3); }
+}
+
+@keyframes cloudDrift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
+/* Track */
+.track {
+  position: absolute;
+  bottom: 38px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  display: flex;
+  gap: 20px;
+  padding: 0 20px;
+}
+
+.track-line {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    #333 0px, #333 20px,
+    transparent 20px, transparent 30px
+  );
+  opacity: 0.4;
+}
+
+.track-line.wet-track {
+  background: repeating-linear-gradient(
+    90deg,
+    #2a4a6a 0px, #2a4a6a 20px,
+    transparent 20px, transparent 30px
+  );
+  opacity: 0.6;
+}
+
+/* Car */
+.car-container {
+  position: relative;
+  z-index: 2;
+  width: 340px;
+  margin: 0 auto;
+  transition: transform 0.3s;
+}
+
+.f1-car {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
+  transition: filter 0.3s;
+}
+
+/* Vibrate when loading */
+.vibrate {
+  animation: vibrate 0.08s linear infinite;
+}
+
+@keyframes vibrate {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 0.5px); }
+  50% { transform: translate(1px, -0.5px); }
+  75% { transform: translate(-0.5px, -0.5px); }
+  100% { transform: translate(0.5px, 0.5px); }
+}
+
+/* Tyre Spin */
+.tyre-spin {
+  animation: spin 0.7s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes spin {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -47; }
+}
+
+/* Speed Lines */
+.speed-lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 1;
+}
+
+.speed-line {
+  position: absolute;
+  left: -80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: speedLine 0.5s linear infinite;
+}
+
+@keyframes speedLine {
+  0% { left: -80px; width: 0; opacity: 0; }
+  50% { width: 80px; opacity: 1; }
+  100% { left: 60px; width: 0; opacity: 0; }
+}
+
+/* Win Gauge */
+.gauge-container {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 130px;
+  z-index: 3;
+}
+
+.gauge {
+  width: 100%;
+}
+
+.gauge-fill {
+  transition: stroke-dasharray 1s ease;
+}
+
+/* Tyre Info */
+.tyre-info {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.tyre-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.downforce-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+  background: rgba(255,255,255,0.05);
+}
+
+.weather-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6cb4ff;
+  background: rgba(100, 150, 255, 0.1);
+}
