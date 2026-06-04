@@ -1,0 +1,222 @@
+<div class="car-visual" [class.loading]="isLoading" [class.rain]="weather === 'WET'" [class.damp]="weather === 'DAMP'">
+
+  <!-- Weather Effects -->
+  <div class="weather-layer">
+    <!-- Rain only when WET or DAMP -->
+    <ng-container *ngIf="weather === 'WET' || weather === 'DAMP'">
+      <div class="raindrop" *ngFor="let r of [1,2,3,4,5,6,7,8,9,10,11,12]"
+        [style.left.%]="r * 8"
+        [style.animationDelay.s]="r * 0.15">
+      </div>
+    </ng-container>
+    <!-- Sun only when DRY -->
+    <div class="sun" *ngIf="weather === 'DRY'">☀️</div>
+    <!-- Cloud when DAMP -->
+    <div class="cloud" *ngIf="weather === 'DAMP'">🌧️</div>
+  </div>
+
+  <!-- Track Surface -->
+  <div class="track">
+    <div class="track-line" [class.wet-track]="weather === 'WET'"></div>
+    <div class="track-line" [class.wet-track]="weather === 'WET'"></div>
+  </div>
+
+  <!-- F1 Car SVG -->
+  <div class="car-container" [class.vibrate]="isLoading">
+    <svg viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg" class="f1-car">
+
+      <!-- Shadow -->
+      <ellipse cx="250" cy="165" rx="180" ry="8" fill="rgba(0,0,0,0.3)"/>
+
+      <!-- ===== REAR WING ===== -->
+      <g>
+        <!-- Main Wing Element (top) -->
+        <rect x="52" y="42" width="60" height="6" rx="2" [attr.fill]="teamColor"/>
+        <!-- Secondary Wing Element -->
+        <rect x="55" y="52" width="54" height="5" rx="2" [attr.fill]="teamColor" opacity="0.85"/>
+        <!-- Wing Endplate Left -->
+        <path d="M52,38 L52,62 L56,65 L56,36Z" [attr.fill]="teamColor" opacity="0.9"/>
+        <!-- Wing Endplate Right -->
+        <path d="M108,38 L108,62 L112,65 L112,36Z" [attr.fill]="teamColor" opacity="0.9"/>
+        <!-- Wing Supports (pylons) -->
+        <rect x="70" y="58" width="3" height="28" fill="#222" rx="1"/>
+        <rect x="92" y="58" width="3" height="28" fill="#222" rx="1"/>
+        <!-- DRS Flap -->
+        <rect x="58" y="38" width="48" height="3" rx="1"
+          [attr.fill]="downforce === 'LOW' ? '#00c800' : teamColor" opacity="0.7"
+          [attr.transform]="'rotate(' + (downforce === 'LOW' ? '-15' : downforce === 'MEDIUM' ? '-8' : '0') + ' 82 39)'"/>
+      </g>
+
+      <!-- ===== ENGINE COVER + SHARK FIN ===== -->
+      <!-- Shark Fin -->
+      <path d="M115,82 L115,50 Q120,42 135,40 L165,38 L165,82Z"
+        [attr.fill]="teamColor" opacity="0.5"/>
+      <!-- Air Intake (above driver) -->
+      <path d="M175,45 L185,32 L195,32 L205,45Z" fill="#111"/>
+
+      <!-- ===== MAIN BODY ===== -->
+      <path d="M100,105 L100,88 Q108,70 140,62 L180,48 L290,42 Q340,40 370,55 L395,72 L405,88 Q408,100 400,105Z"
+        [attr.fill]="teamColor"/>
+
+      <!-- Body Side Detail Lines -->
+      <path d="M130,95 Q180,75 280,70 L370,72 L380,85"
+        fill="none" [attr.stroke]="teamColor" stroke-width="1" opacity="0.3"/>
+
+      <!-- ===== SIDEPODS ===== -->
+      <path d="M165,75 Q172,62 210,58 L310,54 Q330,54 335,65 L335,92 Q335,98 325,98 L170,98 Q165,98 165,92Z"
+        fill="#000" opacity="0.25"/>
+      <!-- Sidepod Inlet -->
+      <path d="M185,68 L195,58 L220,56 L220,68Z" fill="#111" opacity="0.6"/>
+
+      <!-- ===== COCKPIT ===== -->
+      <path d="M210,48 L250,44 Q268,43 272,50 L272,62 Q272,68 264,68 L218,68 Q210,68 208,60Z"
+        fill="#0a0a0a"/>
+
+      <!-- Halo Device -->
+      <path d="M215,52 Q240,34 268,52" fill="none" stroke="#666" stroke-width="5" stroke-linecap="round"/>
+      <path d="M215,52 Q240,36 268,52" fill="none" stroke="#888" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- Driver Helmet -->
+      <ellipse cx="240" cy="54" rx="10" ry="9" [attr.fill]="teamColor"/>
+      <rect x="233" y="50" width="14" height="4" rx="2" fill="#111" opacity="0.7"/>
+      <!-- Visor -->
+      <rect x="235" y="51" width="10" height="2" rx="1" fill="#333"/>
+
+      <!-- ===== T-CAM (on top of air intake) ===== -->
+      <rect x="188" y="29" width="4" height="5" rx="1" fill="#ffd700"/>
+
+      <!-- ===== NOSE ===== -->
+      <path d="M380,72 L420,68 Q440,66 448,72 L448,82 Q448,88 440,90 L395,90Z"
+        [attr.fill]="teamColor"/>
+      <!-- Nose Tip -->
+      <path d="M440,70 L465,74 L465,82 L440,88Z"
+        [attr.fill]="teamColor" opacity="0.9"/>
+
+      <!-- ===== FRONT WING ===== -->
+      <!-- Main Plane -->
+      <rect x="410" y="98" width="80" height="5" rx="2" [attr.fill]="teamColor"/>
+      <!-- Top Flap -->
+      <rect x="415" y="92" width="75" height="4" rx="2" [attr.fill]="teamColor" opacity="0.85"/>
+      <!-- Bottom Flap -->
+      <rect x="420" y="105" width="70" height="3" rx="1" [attr.fill]="teamColor" opacity="0.7"/>
+      <!-- Front Wing Endplate Left -->
+      <path d="M486,88 L492,86 L492,112 L486,114Z" [attr.fill]="teamColor" opacity="0.9"/>
+      <!-- Front Wing Nose Mount -->
+      <rect x="410" y="88" width="4" height="22" rx="1" fill="#222"/>
+      <!-- Front Wing Cascade -->
+      <path d="M430,90 Q450,85 470,88" fill="none" [attr.stroke]="teamColor" stroke-width="2" opacity="0.6"/>
+
+      <!-- ===== FLOOR + BARGEBOARD ===== -->
+      <rect x="105" y="104" width="300" height="3" rx="1" fill="#1a1a1a"/>
+      <!-- Bargeboard -->
+      <path d="M175,95 L175,80 L185,78 L185,95Z" fill="#222" opacity="0.5"/>
+
+      <!-- ===== REAR TYRES ===== -->
+      <g class="tyre-group">
+        <!-- Outer Tyre -->
+        <circle cx="125" cy="108" r="26" fill="#111"/>
+        <!-- Tyre Sidewall -->
+        <circle cx="125" cy="108" r="24" fill="none" stroke="#1a1a1a" stroke-width="4"/>
+        <!-- Tread -->
+        <circle cx="125" cy="108" r="22" fill="#1e1e1e"/>
+        <!-- Inner Ring -->
+        <circle cx="125" cy="108" r="16" fill="#2a2a2a"/>
+        <!-- Wheel Rim -->
+        <circle cx="125" cy="108" r="11" fill="#444"/>
+        <circle cx="125" cy="108" r="9" fill="#555"/>
+        <!-- Wheel Nut -->
+        <circle cx="125" cy="108" r="4" fill="#888"/>
+        <!-- Rim Spokes -->
+        <line x1="125" y1="99" x2="125" y2="117" stroke="#666" stroke-width="1.5"/>
+        <line x1="116" y1="108" x2="134" y2="108" stroke="#666" stroke-width="1.5"/>
+        <!-- Tyre Compound Band -->
+        <circle cx="125" cy="108" r="24" fill="none"
+          [attr.stroke]="tyreColor" stroke-width="4"
+          stroke-dasharray="10 5"
+          class="tyre-spin"
+          [style.animationDuration]="tyreSpeed"/>
+      </g>
+
+      <!-- ===== FRONT TYRES ===== -->
+      <g class="tyre-group">
+        <!-- Outer Tyre -->
+        <circle cx="385" cy="108" r="22" fill="#111"/>
+        <!-- Tyre Sidewall -->
+        <circle cx="385" cy="108" r="20" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+        <!-- Tread -->
+        <circle cx="385" cy="108" r="18" fill="#1e1e1e"/>
+        <!-- Inner Ring -->
+        <circle cx="385" cy="108" r="13" fill="#2a2a2a"/>
+        <!-- Wheel Rim -->
+        <circle cx="385" cy="108" r="9" fill="#444"/>
+        <circle cx="385" cy="108" r="7" fill="#555"/>
+        <!-- Wheel Nut -->
+        <circle cx="385" cy="108" r="3" fill="#888"/>
+        <!-- Rim Spokes -->
+        <line x1="385" y1="101" x2="385" y2="115" stroke="#666" stroke-width="1.5"/>
+        <line x1="378" y1="108" x2="392" y2="108" stroke="#666" stroke-width="1.5"/>
+        <!-- Tyre Compound Band -->
+        <circle cx="385" cy="108" r="20" fill="none"
+          [attr.stroke]="tyreColor" stroke-width="3"
+          stroke-dasharray="8 4"
+          class="tyre-spin"
+          [style.animationDuration]="tyreSpeed"/>
+      </g>
+
+      <!-- ===== EXHAUST ===== -->
+      <circle cx="88" cy="88" r="4" fill="#222"/>
+      <circle cx="88" cy="88" r="2" fill="#e10600" opacity="0.6"/>
+
+      <!-- ===== TEAM NUMBER ===== -->
+      <text x="260" y="90" font-size="16" font-weight="800" fill="white"
+        text-anchor="middle" font-family="Arial" opacity="0.9">
+        F1
+      </text>
+
+    </svg>
+  </div>
+
+  <!-- Speed Lines (when loading) -->
+  <div class="speed-lines" *ngIf="isLoading">
+    <div class="speed-line" *ngFor="let l of [1,2,3,4,5,6,7]"
+      [style.top.%]="15 + l * 10"
+      [style.animationDelay.s]="l * 0.08">
+    </div>
+  </div>
+
+  <!-- Win Gauge -->
+  <div class="gauge-container" *ngIf="winChance > 0">
+    <svg viewBox="0 0 200 120" class="gauge">
+      <path d="M20,100 A80,80 0 0,1 180,100"
+        fill="none" stroke="#1a4a8a" stroke-width="12" stroke-linecap="round"/>
+      <path d="M20,100 A80,80 0 0,1 180,100"
+        fill="none"
+        [attr.stroke]="winChance >= 60 ? '#00c800' : winChance >= 30 ? '#ffd700' : '#e10600'"
+        stroke-width="12" stroke-linecap="round"
+        [style.strokeDasharray]="(winChance / 100 * 251) + ' 251'"
+        class="gauge-fill"/>
+      <text x="100" y="88" text-anchor="middle" fill="white"
+        font-size="30" font-weight="800" font-family="Arial">
+        {{ winChance }}%
+      </text>
+      <text x="100" y="108" text-anchor="middle" fill="#888"
+        font-size="10" font-family="Arial">
+        WIN CHANCE
+      </text>
+    </svg>
+  </div>
+
+  <!-- Tyre Info -->
+  <div class="tyre-info">
+    <span class="tyre-badge" [style.background]="tyreColor + '33'" [style.color]="tyreColor">
+      {{ tyres }}
+    </span>
+    <span class="downforce-badge">
+      ⚙️ {{ downforce }} DOWNFORCE
+    </span>
+    <span class="weather-badge" *ngIf="weather !== 'DRY'">
+      {{ weather === 'WET' ? '🌧️' : '🌦️' }} {{ weather }}
+    </span>
+  </div>
+
+</div>

@@ -12,5 +12,17 @@
         "jestConfig": "libs/f1-data-client/jest.config.cts"
       }
     }
+  },
+  "assets": [
+  {
+    "glob": "**/*",
+    "input": "apps/predictor-mfe/public",
+    "output": "."
+  },
+  {
+    "glob": "**/*",
+    "input": "apps/predictor-mfe/src/assets",
+    "output": "assets"
   }
+]
 }

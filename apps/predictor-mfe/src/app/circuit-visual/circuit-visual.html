@@ -1,0 +1,55 @@
+<div class="circuit-visual">
+
+  <!-- No Circuit Selected -->
+  <div class="circuit-placeholder" *ngIf="!circuit">
+    <div class="placeholder-icon">🏁</div>
+    <p>Select a circuit</p>
+  </div>
+
+  <!-- Not Available -->
+  <div class="circuit-placeholder" *ngIf="circuit && (!circuitUrl || hasError)">
+    <div class="placeholder-icon">⚠️</div>
+    <p>{{ circuit }} — layout coming soon</p>
+  </div>
+
+  <!-- Circuit SVG Image -->
+  <div class="circuit-img-wrapper" *ngIf="circuitUrl && !hasError">
+    <img
+      [src]="circuitUrl"
+      [alt]="circuit + ' circuit layout'"
+      class="circuit-img"
+      (error)="onImgError()"/>
+  </div>
+
+  <!-- Stats -->
+  <ng-container *ngIf="showStats && stats && circuitUrl && !hasError">
+    <div class="circuit-stats">
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.length }}</span>
+        <span class="stat-label">Length</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.turns }}</span>
+        <span class="stat-label">Turns</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.drsZones }}</span>
+        <span class="stat-label">DRS</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.lapRecord }}</span>
+        <span class="stat-label">Lap Record</span>
+      </div>
+    </div>
+
+    <div class="circuit-footer">
+      <span class="circuit-type" [style.border-color]="teamColor" [style.color]="teamColor">
+        {{ stats.type }}
+      </span>
+      <span class="lap-record-holder">
+        🏆 {{ stats.lapRecordHolder }}
+      </span>
+    </div>
+  </ng-container>
+
+</div>

@@ -1,3 +1,304 @@
+/* View Tabs */
+.view-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.view-tab {
+  padding: 10px 24px;
+  background: #16213e;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-tab.active {
+  background: #e10600;
+  color: white;
+  border-color: #e10600;
+}
+
+.view-tab:hover:not(.active) {
+  background: #0f3460;
+  color: white;
+}
+
+/* Overview Loading */
+.overview-loading {
+  text-align: center;
+  padding: 80px 24px;
+  background: #16213e;
+  border-radius: 12px;
+}
+
+.loading-icon {
+  font-size: 48px;
+  animation: pulse 1s infinite;
+}
+
+.overview-loading p {
+  color: white;
+  font-size: 18px;
+  margin: 16px 0 4px 0;
+}
+
+.overview-loading small {
+  color: #888;
+  font-size: 13px;
+}
+
+.overview-error {
+  text-align: center;
+  padding: 48px;
+  background: #16213e;
+  border-radius: 12px;
+}
+
+.retry-btn {
+  padding: 10px 24px;
+  background: #e10600;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+/* Race Banner */
+.race-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #16213e;
+  padding: 24px 32px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.race-round {
+  font-size: 11px;
+  color: #e10600;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.race-details h3 {
+  font-size: 24px;
+  margin: 4px 0 4px 0;
+  color: white;
+  font-weight: 800;
+}
+
+.race-circuit {
+  color: #888;
+  font-size: 14px;
+}
+
+.race-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.race-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: #888;
+}
+
+/* Insight Banner */
+.insight-banner {
+  background: rgba(225, 6, 0, 0.08);
+  border: 1px solid rgba(225, 6, 0, 0.2);
+  padding: 14px 20px;
+  border-radius: 8px;
+  color: #ddd;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Section Title */
+.section-title {
+  color: white;
+  font-size: 18px;
+  margin: 0 0 16px 0;
+}
+
+/* Contenders Grid */
+.contenders-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.contender-card {
+  background: #16213e;
+  padding: 20px 16px;
+  border-radius: 12px;
+  text-align: center;
+  border-top: 3px solid transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.2s;
+}
+
+.contender-card:hover {
+  transform: translateY(-4px);
+}
+
+.contender-position {
+  font-size: 13px;
+  font-weight: 800;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.contender-position.p1 { color: #ffd700; }
+.contender-position.p2 { color: #c0c0c0; }
+.contender-position.p3 { color: #cd7f32; }
+
+.chance-ring {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px auto;
+}
+
+.chance-ring svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ring-fill {
+  transition: stroke-dasharray 1s ease;
+}
+
+.contender-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+}
+
+.contender-team {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.form-badge {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.contender-reason {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Battle Card */
+.battle-card {
+  background: #16213e;
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.battle-card h4 {
+  color: white;
+  font-size: 15px;
+  margin: 0 0 8px 0;
+}
+
+.battle-card p {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Dark Horse Card */
+.darkhorse-card {
+  background: linear-gradient(135deg, #16213e 0%, #1a2a40 100%);
+  padding: 20px 24px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.darkhorse-card h4 {
+  color: #ffd700;
+  font-size: 15px;
+  margin: 0 0 10px 0;
+}
+
+.darkhorse-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.darkhorse-name {
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.darkhorse-team {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.darkhorse-card p {
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Simulator CTA */
+.simulator-cta {
+  background: linear-gradient(135deg, #e10600 0%, #c00500 100%);
+  padding: 16px 24px;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.simulator-cta:hover {
+  transform: scale(1.01);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
 .predictor-page {
   padding: 24px;
   background: #1a1a2e;
@@ -395,3 +696,338 @@
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Predictor Layout */
+.predictor-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Controls Panel */
+.controls-panel {
+  background: #16213e;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.controls-panel h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.select {
+  width: 100%;
+  padding: 10px 14px;
+  background: #0f3460;
+  border: 1px solid #1a4a8a;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #e10600;
+}
+
+.option-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-btn {
+  padding: 6px 12px;
+  background: #0f3460;
+  border: 1px solid #1a4a8a;
+  border-radius: 6px;
+  color: #aaa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.option-btn.active {
+  background: #e10600;
+  border-color: #e10600;
+  color: white;
+  font-weight: 600;
+}
+
+.option-btn:hover:not(.active) {
+  background: #1a4a8a;
+  color: white;
+}
+
+.predict-btn {
+  width: 100%;
+  padding: 14px;
+  background: #e10600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.predict-btn:hover:not(:disabled) {
+  background: #c00500;
+}
+
+.predict-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #e10600;
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* Results Panel */
+.results-panel {
+  background: #16213e;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  min-height: 400px;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 12px;
+}
+
+.loading-spinner {
+  font-size: 48px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.loading-state p {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+}
+
+.loading-state small {
+  color: #888;
+  font-size: 12px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 12px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+}
+
+.empty-state h3 {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+}
+
+.empty-state p {
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Chances Grid */
+.chances-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chance-card {
+  background: #0f3460;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.chance-value {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.chance-label {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.chance-bar {
+  height: 6px;
+  background: #1a4a8a;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.chance-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Risk Card */
+.risk-card {
+  background: #0f3460;
+  padding: 14px 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.risk-label {
+  color: #888;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.risk-value {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Insight Card */
+.insight-card {
+  background: #0f3460;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.insight-card h4 {
+  color: white;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+}
+
+.insight-card p {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Optimal Card */
+.optimal-card {
+  background: rgba(0, 200, 0, 0.05);
+  border: 1px solid rgba(0, 200, 0, 0.2);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.optimal-card h4 {
+  color: #00c800;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.optimal-details {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.optimal-details span {
+  font-size: 13px;
+  color: white;
+  background: #0f3460;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.optimal-win {
+  font-weight: 700 !important;
+}
+
+.optimal-explanation {
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Fun Fact */
+.fun-fact-card {
+  background: rgba(225, 6, 0, 0.05);
+  border: 1px solid rgba(225, 6, 0, 0.2);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.fun-fact-card h4 {
+  color: #e10600;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+}
+
+.fun-fact-card p {
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+app-f1-car-visual {
+  display: block;
+  margin-bottom: 24px;
+}
+
