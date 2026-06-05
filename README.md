@@ -1,101 +1,194 @@
-# FiTemp
+# 🏎️ F1 RaceLab UI
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+> An AI-powered Formula 1 fan application built with a modern **micro-frontend architecture** on Angular 21 and deployed on AWS.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+[![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)](https://angular.dev)
+[![Nx](https://img.shields.io/badge/Nx-Monorepo-143055?logo=nx&logoColor=white)](https://nx.dev)
+[![Module Federation](https://img.shields.io/badge/Module%20Federation-Runtime%20Manifest-1F6FEB)](https://module-federation.io)
+[![AWS](https://img.shields.io/badge/AWS-S3%20%7C%20CloudFront%20%7C%20Cognito-FF9900?logo=amazonaws&logoColor=white)](https://aws.amazon.com)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+**🔗 Live demo:** https://d7echn6hj4ca9.cloudfront.net/shell/index.html
+**🧠 Backend (AI + infrastructure):** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
 
-## Run tasks
+> **🚀 Try it instantly — no signup needed**
+>
+> | Field | Value |
+> |-------|-------|
+> | Email | `guest@f1racelab.com` |
+> | Password | `GuestRaceLab2026@` |
+>
+> Or click **"Try as Guest"** on the login page and it fills in automatically.
 
-To run the dev server for your app, use:
+---
 
-```sh
-npx nx serve shell
+## Overview
+
+F1 RaceLab is a Formula 1 companion app where fans can follow live timing, browse championship standings, read the latest news, and — the centerpiece — get **AI-generated race predictions** with an interactive strategy simulator.
+
+The project is intentionally built as a set of **independently deployable micro-frontends (MFEs)** rather than a single monolithic SPA, to demonstrate how large frontend systems are structured and shipped in production.
+
+---
+
+## Architecture
+
+A **shell** host application loads six remote MFEs at runtime through Webpack Module Federation. Instead of hard-coding remote URLs at build time, the shell reads a **runtime manifest** (`module-federation.manifest.json`), so each MFE can be built and deployed on its own and the environment (local vs. production) is just a different manifest file.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                        shell (host)                        │
+│   navbar · routing · runtime manifest · shared singletons  │
+└───────────────┬──────────────────────────────────────────┘
+                │ loadRemoteModule (Module Federation)
+   ┌────────────┼─────────────┬─────────────┬───────────────┐
+   ▼            ▼             ▼             ▼               ▼
+auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
+(Cognito)  (timing)    (standings)    (RSS feed)   (previews + AI predictor)
+
+           shared libraries
+   ┌──────────────────────────────────────────────┐
+   │  shared-models  · TypeScript interfaces        │
+   │  shared-ui      · EventBus, AuthState, config  │
+   │  f1-data-client · OpenF1 / Ergast / AI client  │
+   └──────────────────────────────────────────────┘
 ```
 
-To create a production bundle:
+### Applications
 
-```sh
-npx nx build shell
+| App | Port | Responsibility |
+|-----|------|----------------|
+| `shell` | 4200 | Host: navbar, routing, auth state, MFE orchestration |
+| `auth-mfe` | 4201 | Login, signup, email verification, forgot password (Cognito) |
+| `live-mfe` | 4202 | Live timing board — positions, tyres, gaps |
+| `stats-mfe` | 4203 | Driver & constructor championship standings |
+| `fantasy-mfe` | 4204 | Fantasy league (guest preview + member view) |
+| `predictor-mfe` | 4205 | AI race predictor + strategy simulator |
+| `news-mfe` | 4206 | Latest F1 news feed |
+
+### Shared libraries
+
+| Library | Purpose |
+|---------|---------|
+| `@f1-racelab/shared-models` | Pure TypeScript domain interfaces (Driver, Race, Standing, etc.) |
+| `@f1-racelab/shared-ui` | Cross-MFE `EventBusService`, `AuthStateService`, Cognito config |
+| `@f1-racelab/f1-data-client` | Data access for OpenF1, Ergast/Jolpica, news, and the prediction API |
+
+---
+
+## Tech Stack
+
+- **Framework:** Angular 21 (standalone components, signals)
+- **Monorepo:** Nx
+- **Micro-frontends:** Webpack Module Federation (runtime manifest)
+- **Auth:** Amazon Cognito (via AWS Amplify)
+- **Hosting:** Amazon S3 (static) + CloudFront (HTTPS, CDN, SPA routing)
+- **CI/CD:** GitHub Actions
+- **Data sources:** OpenF1 (live), Ergast/Jolpica (historical & standings)
+
+---
+
+## Key Features
+
+- 🧩 **True micro-frontend setup** — six remotes loaded at runtime, each independently buildable and deployable
+- 🔮 **AI race predictor** — single-driver predictions and a "what-if" simulator where tyre, weather, downforce, and strategy change the predicted win probability live (powered by the backend Bedrock service)
+- 🏁 **Race overview** — auto-generated top contenders for the upcoming Grand Prix
+- 📊 **Live timing & standings** — real F1 data
+- 🔐 **Full auth flow** — signup with favourite-team selection, email verification, session restore
+- 📱 **Mobile-friendly** — served over HTTPS via CloudFront
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 22 (LTS)
+- npm
+
+### Install
+
+```bash
+git clone https://github.com/ShivamSahdev8/f1-racelab-ui.git
+cd f1-racelab-ui
+npm install
 ```
 
-To see all available targets to run for a project, run:
+### Run all apps locally
 
-```sh
-npx nx show project shell
+```bash
+npx nx run-many --target=serve --all --parallel
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Then open **http://localhost:4200**.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Run a single app:
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/angular:app demo
+```bash
+npx nx serve predictor-mfe
 ```
 
-To generate a new library, use:
+### Build for production
 
-```sh
-npx nx g @nx/angular:lib mylib
+```bash
+# each app is built with its own base-href
+npx nx build shell --base-href /shell/
+npx nx build predictor-mfe --base-href /predictor-mfe/
+# ...etc
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+---
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Deployment
 
-## Set up CI!
+Deployment is automated with **GitHub Actions** on every push to `main`:
 
-### Step 1
+1. Build each MFE with its `--base-href`
+2. Swap in the production Module Federation manifest (CloudFront URLs)
+3. Sync each build to its folder in the S3 bucket
+4. Invalidate the CloudFront distribution
 
-To connect to Nx Cloud, run the following command:
+CloudFront serves everything over HTTPS and rewrites 403/404s to `shell/index.html` so Angular client-side routing works on direct URL access.
 
-```sh
-npx nx connect
+> AWS credentials are stored as repository secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) and never committed.
+
+---
+
+## Project Structure
+
+```
+f1-racelab-ui/
+├── apps/
+│   ├── shell/              # host application
+│   ├── auth-mfe/
+│   ├── live-mfe/
+│   ├── stats-mfe/
+│   ├── fantasy-mfe/
+│   ├── predictor-mfe/
+│   └── news-mfe/
+├── libs/
+│   ├── shared-models/
+│   ├── shared-ui/
+│   └── f1-data-client/
+└── .github/workflows/      # CI/CD
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+---
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Roadmap
 
-### Step 2
+- [ ] Full fantasy league (driver picker, scoring, leaderboard)
+- [ ] Live timing fallback when OpenF1 real-time is unavailable
+- [ ] Team-color theming based on the user's favourite team
+- [ ] AI chatbot for F1 questions (RAG over historical data)
 
-Use the following command to configure a CI workflow for your workspace:
+---
 
-```sh
-npx nx g ci-workflow
-```
+## Acknowledgements
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- F1 data from [OpenF1](https://openf1.org) and [Ergast / Jolpica](https://api.jolpi.ca)
+- Circuit layouts from open-source SVG collections
+- AI predictions powered by Amazon Bedrock (Claude)
 
-## Install Nx Console
+---
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+*This is an unofficial, personal project built for learning and is not affiliated with Formula 1.*
