@@ -25,7 +25,7 @@ export class Login {
   isLoading   = signal(false);
   error       = signal<string | null>(null);
   step        = signal<AuthStep>('login');
-
+  showPassword = signal(false);
   constructor(
     private authService: AuthService,
     private eventBus: EventBusService,
@@ -70,6 +70,7 @@ export class Login {
         });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
+        window.location.href = '/';
       } else if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
         this.step.set('new-password');
       }
@@ -101,6 +102,8 @@ export class Login {
         });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
+        window.location.href = '/';
+
       }
 
     } catch (err: any) {
@@ -121,5 +124,15 @@ export class Login {
     this.password = '';
     this.cdr.detectChanges();
     
+  }
+
+    async loginAsGuest(): Promise<void> {
+    this.email = 'guest@f1racelab.com';
+    this.password = 'GuestRaceLab2026@';
+    await this.onLogin();
+  }
+
+  togglePassword(): void {
+    this.showPassword.update(v => !v);
   }
 }
