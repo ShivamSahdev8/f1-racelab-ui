@@ -1,0 +1,109 @@
+<!-- Ambient bg -->
+<div class="aurora" aria-hidden="true">
+  <span class="aurora-a"></span>
+  <span class="aurora-b"></span>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ══ HERO ══════════════════════════════════════════ -->
+<section class="hero" #heroSection>
+
+  <!-- Start lights -->
+  <div class="gantry" aria-label="F1 start lights">
+    <div class="light-col" *ngFor="let c of [1,2,3,4,5]">
+      <span class="bulb"></span>
+      <span class="bulb"></span>
+    </div>
+  </div>
+
+  <div class="eyebrow">AI race intelligence · <b>real F1 data</b></div>
+  <h1 class="display">PREDICT<span class="l2">THE&nbsp;RACE.</span></h1>
+  <p class="sub">A Formula 1 fan platform that reads live standings, models tyre and weather strategy, and calls the grid before lights out — powered by AI.</p>
+
+  <div class="hero-cta">
+    <button class="btn-primary" (click)="enterApp()">Launch RaceLab →</button>
+    <a class="btn-ghost" href="#features">See the features</a>
+  </div>
+
+  <!-- Drop in your McLaren PNG here ↓ -->
+  <img
+    #car
+    class="hero-car"
+    src="assets/mclaren.png"
+    alt="F1 car"
+    draggable="false"/>
+
+  <div class="scrollcue" aria-hidden="true">
+    <div class="bar"></div>
+    SCROLL
+  </div>
+
+</section>
+
+<!-- ══ FEATURES ══════════════════════════════════════ -->
+<section class="section features-section" id="features" #featuresSection>
+  <div class="sec-head">
+    <div class="sec-tag">The grid</div>
+    <h2 class="display">Everything a fan needs,<br>on one pit wall.</h2>
+    <p>Each module is an independently deployable micro-frontend — built, shipped, and scaled on its own.</p>
+  </div>
+  <div class="grid">
+    <div class="card" *ngFor="let f of features" [style.--accent]="f.accent">
+      <div class="pos">{{ f.pos }}</div>
+      <h3>{{ f.title }}</h3>
+      <p>{{ f.desc }}</p>
+      <div class="meta">
+        <span *ngFor="let m of f.meta">{{ m.label }} <b>{{ m.val }}</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PREDICTOR SHOWCASE ════════════════════════════ -->
+<section class="section gauge-section">
+  <div class="show">
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 220 220" class="gauge" aria-label="Win probability gauge">
+        <circle cx="110" cy="110" r="92" fill="none" stroke="#1d2436" stroke-width="16"/>
+        <circle class="gauge-fill" cx="110" cy="110" r="92" fill="none" stroke="#00D767" stroke-width="16"
+          stroke-linecap="round" transform="rotate(-90 110 110)"
+          stroke-dasharray="578" stroke-dashoffset="578"/>
+        <text class="gauge-pct" x="110" y="116" text-anchor="middle"
+          font-family="Saira,sans-serif" font-weight="900" font-size="50" fill="#fff">0%</text>
+        <text x="110" y="142" text-anchor="middle"
+          font-family="JetBrains Mono,monospace" font-size="11" letter-spacing="3" fill="#868EA6">WIN CHANCE</text>
+      </svg>
+    </div>
+    <div class="show-copy">
+      <div class="sec-tag">Lights out</div>
+      <h3 class="display">It doesn't guess.<br>It reads the data.</h3>
+      <p>RaceLab pulls live championship standings, blends them with your chosen setup, and asks the model for a grounded call — then explains why.</p>
+      <div class="chips">
+        <span class="chip">🔴 Soft · 1-stop</span>
+        <span class="chip p">Fastest sector</span>
+        <span class="chip g">Personal best</span>
+        <span class="chip">Dry · High downforce</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TECH STRIP ═════════════════════════════════════ -->
+<div class="tech-strip">
+  <div class="tech-inner">
+    <span class="tech-item" *ngFor="let t of techStack">{{ t }}</span>
+  </div>
+</div>
+
+<!-- ══ FINAL CTA ══════════════════════════════════════ -->
+<section class="final">
+  <h2 class="display">LIGHTS OUT.<br><em>ENTER RACELAB.</em></h2>
+  <div class="creds">guest login · <b>guest&#64;f1racelab.com</b> · <b>GuestRaceLab2026!</b></div>
+  <div class="hero-cta">
+    <button class="btn-primary" (click)="enterApp()">Launch RaceLab →</button>
+  </div>
+</section>
+
+<footer>
+  Unofficial fan project · not affiliated with Formula 1 · built by Shivam Sahdev
+</footer>
