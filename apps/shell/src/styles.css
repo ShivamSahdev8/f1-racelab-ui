@@ -1,12 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
-body {
+* { box-sizing: border-box; }
+
+html, body {
   margin: 0;
   padding: 0;
-  background: #1a1a2e;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  background: #070A12;
+  overflow-x: hidden;
 }
 
-* {
-  box-sizing: border-box;
+.route-container {
+  min-height: 100vh;
+}
+
+.route-container.has-nav-offset {
+  padding-top: 90px; /* navbar height (56px) + top offset (18px) + breathing room */
 }

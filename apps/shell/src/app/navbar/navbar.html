@@ -1,38 +1,37 @@
-<nav class="navbar">
-  <div class="navbar-brand">
-    🏎️ F1 RaceLab
-  </div>
-  <ul class="navbar-links">
-    <li><a routerLink="/live" routerLinkActive="active">Live</a></li>
-    <li><a routerLink="/stats" routerLinkActive="active">Stats</a></li>
-    <li><a routerLink="/fantasy" routerLinkActive="active">Fantasy</a></li>
-    <li><a routerLink="/predictor" routerLinkActive="active">Predictor</a></li>
-    <li><a routerLink="/news" routerLinkActive="active">News</a></li>
+<div class="navbar">
+  <nav class="nav-inner">
 
-    <!-- Show Login when not logged in -->
-    <li *ngIf="!(isLoggedIn$ | async)">
-      <a routerLink="/auth" routerLinkActive="active">Login</a>
-    </li>
+    <a class="brand" routerLink="/">
+      <span class="dot"></span>F1 RACELAB
+    </a>
 
-    <!-- Show User menu when logged in -->
-    <li *ngIf="isLoggedIn$ | async" class="user-menu">
-      <div class="user-trigger" (click)="toggleDropdown()">
-        <span class="user-name">👤 {{ (user$ | async)?.name }}</span>
-        <span class="user-team" *ngIf="(user$ | async)?.favouriteTeam">
-          {{ (user$ | async)?.favouriteTeam }}
-        </span>
-        <span class="dropdown-arrow">▾</span>
-      </div>
+    <div class="tabs" #tabsContainer>
+      <span class="pill" #pill></span>
+      <a class="tab" routerLink="/live" routerLinkActive="active" #tab>Live</a>
+      <a class="tab" routerLink="/stats" routerLinkActive="active" #tab>Standings</a>
+      <a class="tab" routerLink="/fantasy" routerLinkActive="active" #tab>Fantasy</a>
+      <a class="tab" routerLink="/predictor" routerLinkActive="active" #tab>Predictor</a>
+      <a class="tab" routerLink="/news" routerLinkActive="active" #tab>News</a>
+    </div>
 
-      <!-- Dropdown -->
-      <div class="dropdown" *ngIf="showDropdown">
-        <a routerLink="/auth" class="dropdown-item" (click)="showDropdown = false">
-          👤 Profile
-        </a>
-        <div class="dropdown-item logout" (click)="logout()">
-          🚪 Sign Out
+    <!-- User dropdown or enter app -->
+    <ng-container *ngIf="isLoggedIn$ | async; else loginBtn">
+      <div class="user-area" (click)="toggleDropdown()" #userArea>
+        <button class="nav-enter">
+          {{ (user$ | async)?.name || 'Account' }} ▾
+        </button>
+        <div class="dropdown" *ngIf="showDropdown">
+          <div class="dropdown-team" *ngIf="(user$ | async)?.favouriteTeam">
+            🏎️ {{ (user$ | async)?.favouriteTeam }}
+          </div>
+          <button class="dropdown-item" (click)="logout()">Sign out</button>
         </div>
       </div>
-    </li>
-  </ul>
-</nav>
+    </ng-container>
+
+    <ng-template #loginBtn>
+      <a class="nav-enter" routerLink="/auth/login">Sign In</a>
+    </ng-template>
+
+  </nav>
+</div>

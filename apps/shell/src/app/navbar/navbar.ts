@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import {
+  Component, OnInit, OnDestroy, AfterViewInit,
+  ElementRef, ViewChild, ViewChildren, QueryList
+} from '@angular/core';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, filter, Subscription } from 'rxjs';
 import { AuthStateService, AuthUser, EventBusService, BusEventType, cognitoConfig } from '@f1-racelab/shared-ui';
 import { signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
@@ -13,13 +16,16 @@ import { Amplify } from 'aws-amplify';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  @ViewChild('pill') pillRef!: ElementRef<HTMLSpanElement>;
+  @ViewChildren('tab') tabRefs!: QueryList<ElementRef<HTMLElement>>;
 
   user$: Observable<AuthUser | null>;
   isLoggedIn$: Observable<boolean>;
   showDropdown = false;
-  private inactivityTimer: any;
-  private readonly TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+
+  private routerSub!: Subscription;
 
   constructor(
     private authState: AuthStateService,
@@ -33,20 +39,32 @@ export class NavbarComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.restoreSession();
-      // Reset timer on user activity
-  ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
-    document.addEventListener(event, () => this.resetInactivityTimer());
-  });
-
-  this.resetInactivityTimer();
   }
 
-  private resetInactivityTimer(): void {
-  clearTimeout(this.inactivityTimer);
-  this.inactivityTimer = setTimeout(() => {
-    this.logout();
-  }, this.TIMEOUT_MS);
-}
+  ngAfterViewInit(): void {
+    // Move pill on route change
+    this.routerSub = this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => setTimeout(() => this.movePill(), 50));
+    setTimeout(() => this.movePill(), 100);
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+  }
+
+  movePill(): void {
+    const active = this.tabRefs?.find(t =>
+      t.nativeElement.classList.contains('active')
+    );
+    const pill = this.pillRef?.nativeElement;
+    if (active && pill) {
+      pill.style.left = active.nativeElement.offsetLeft + 'px';
+      pill.style.width = active.nativeElement.offsetWidth + 'px';
+    } else if (pill) {
+      pill.style.width = '0';
+    }
+  }
 
   private async restoreSession(): Promise<void> {
     try {
@@ -60,7 +78,6 @@ export class NavbarComponent implements OnInit {
         });
       }
     } catch {
-      // No existing session — show login button
       this.authState.clearUser();
     }
   }
@@ -71,13 +88,11 @@ export class NavbarComponent implements OnInit {
 
   async logout(): Promise<void> {
     try {
-      Amplify.configure(cognitoConfig);
       await signOut();
     } catch (e) {
-      console.error('Signout error:', e);
+      console.error(e);
     }
     this.authState.clearUser();
-    this.eventBus.emit(BusEventType.AUTH_LOGOUT, null);
     this.showDropdown = false;
     window.location.href = '/auth/login';
   }
