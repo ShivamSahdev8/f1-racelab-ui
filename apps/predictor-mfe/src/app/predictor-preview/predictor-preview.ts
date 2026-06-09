@@ -61,7 +61,7 @@ export class PredictorPreview {
   circuits = [
     'Bahrain', 'Saudi Arabia', 'Australia', 'Japan',
     'China', 'Miami', 'Emilia Romagna', 'Monaco',
-    'Canada', 'Spain', 'Austria', 'Great Britain',
+    'Canada', 'Barcelona', 'Austria', 'Great Britain',
     'Hungary', 'Belgium', 'Netherlands', 'Italy',
     'Azerbaijan', 'Singapore', 'United States', 'Mexico',
     'Brazil', 'Las Vegas', 'Qatar', 'Abu Dhabi'
@@ -199,6 +199,7 @@ export class PredictorPreview {
   'Australian Grand Prix': 'Australia',
   'Bahrain Grand Prix': 'Bahrain',
   'Spanish Grand Prix': 'Spain',
+  'Barcelona Grand Prix': 'Barcelona',
   'Austrian Grand Prix': 'Austria',
   'Belgian Grand Prix': 'Belgium',
   'Dutch Grand Prix': 'Netherlands',

@@ -1,139 +1,127 @@
-<div class="signup-container">
-  <div class="signup-card">
+<div class="auth-page">
 
-    <!-- Logo -->
-    <div class="logo">🏎️ F1 RaceLab</div>
+  <!-- Ambient background -->
+  <div class="aurora" aria-hidden="true">
+    <span class="aurora-a"></span>
+    <span class="aurora-b"></span>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
 
-    <!-- Success -->
-    <ng-container *ngIf="step() === 'success'">
-      <div class="success-icon">🎉</div>
-      <h2>You're In!</h2>
-      <p class="subtitle">Account created successfully!</p>
-      <a routerLink="/auth/login" class="login-btn-link">
-        <button class="login-btn">Go to Login</button>
-      </a>
-    </ng-container>
-
-    <!-- Verify Email -->
-    <ng-container *ngIf="step() === 'verify'">
-      <h2>Verify Email</h2>
-      <p class="subtitle">
-        We sent a code to <strong>{{ email }}</strong>
-      </p>
-
-      <div class="error-banner" *ngIf="error()">
-        ❌ {{ error() }}
+  <!-- Left panel -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo"><span class="dot"></span>F1 RACELAB</div>
+      <div class="gantry">
+        <div class="light-col" *ngFor="let c of [1,2,3,4,5]">
+          <span class="bulb lit"></span>
+          <span class="bulb lit"></span>
+        </div>
       </div>
+      <h2 class="brand-headline display">JOIN THE<span class="l2">PIT WALL.</span></h2>
+      <p class="brand-sub">Pick your team, predict races and compete with F1 fans worldwide.</p>
+      <div class="brand-chips">
+        <span class="chip">🏆 Fantasy league</span>
+        <span class="chip g">📊 Live standings</span>
+        <span class="chip p">🔮 AI predictor</span>
+      </div>
+    </div>
+  </div>
 
-      <div class="form">
-        <div class="form-group">
+  <!-- Right panel -->
+  <div class="form-panel">
+    <div class="form-card">
+
+      <!-- Success -->
+      <ng-container *ngIf="step() === 'success'">
+        <div class="success-state">
+          <div class="success-icon">🎉</div>
+          <h1 class="display">You're In!</h1>
+          <p class="form-sub">Account created successfully. Time to predict some races.</p>
+          <a routerLink="/auth/login" class="submit-btn" style="display:block;text-align:center;text-decoration:none;margin-top:24px">
+            Go to Sign In →
+          </a>
+        </div>
+      </ng-container>
+
+      <!-- Verify Email -->
+      <ng-container *ngIf="step() === 'verify'">
+        <div class="form-header">
+          <div class="form-eyebrow">Step 2 of 2</div>
+          <h1 class="display">Check<span class="l2">your email.</span></h1>
+          <p class="form-sub">We sent a 6-digit code to <b style="color:#F4F6FF">{{ email }}</b></p>
+        </div>
+
+        <div class="error-msg" *ngIf="error()"><span>⚠️</span> {{ error() }}</div>
+
+        <div class="field">
           <label>Verification Code</label>
-          <input
-            type="text"
-            [(ngModel)]="verifyCode"
-            placeholder="Enter 6-digit code"
-            class="input"
-            [disabled]="isLoading()"/>
+          <input type="text" [(ngModel)]="verifyCode" placeholder="000000"
+            [disabled]="isLoading()" style="letter-spacing:.4em;font-size:22px;text-align:center"/>
         </div>
 
-        <button
-          class="login-btn"
-          (click)="onVerify()"
+        <button class="submit-btn" (click)="onVerify()"
           [disabled]="isLoading() || !verifyCode">
-          {{ isLoading() ? 'Verifying...' : 'Verify Email' }}
+          {{ isLoading() ? '⏳ Verifying...' : 'Verify Email →' }}
         </button>
-      </div>
-    </ng-container>
 
-    <!-- Register Form -->
-    <ng-container *ngIf="step() === 'register'">
-      <h2>Create Account</h2>
-      <p class="subtitle">Join the F1 RaceLab community</p>
+        <p class="footer-link">Wrong email? <a routerLink="/auth/register" class="link">Start over</a></p>
+      </ng-container>
 
-      <div class="error-banner" *ngIf="error()">
-        ❌ {{ error() }}
-      </div>
+      <!-- Register -->
+      <ng-container *ngIf="step() === 'register'">
+        <div class="form-header">
+          <div class="form-eyebrow">Create account</div>
+          <h1 class="display">Welcome<span class="l2">to the grid.</span></h1>
+          <p class="form-sub">Already racing? <a routerLink="/auth/login" class="link">Sign in</a></p>
+        </div>
 
-      <div class="form">
+        <div class="error-msg" *ngIf="error()"><span>⚠️</span> {{ error() }}</div>
 
-        <!-- Name -->
-        <div class="form-group">
+        <div class="field">
           <label>Full Name</label>
-          <input
-            type="text"
-            [(ngModel)]="name"
-            placeholder="John Doe"
-            class="input"
+          <input type="text" [(ngModel)]="name" placeholder="Lewis Hamilton"
             [disabled]="isLoading()"/>
         </div>
 
-        <!-- Email -->
-        <div class="form-group">
+        <div class="field">
           <label>Email</label>
-          <input
-            type="email"
-            [(ngModel)]="email"
-            placeholder="your@email.com"
-            class="input"
+          <input type="email" [(ngModel)]="email" placeholder="you@example.com"
             [disabled]="isLoading()"/>
         </div>
 
-        <!-- Password -->
-        <div class="form-group">
+        <div class="field">
           <label>Password</label>
-          <input
-            type="password"
-            [(ngModel)]="password"
-            placeholder="••••••••"
-            class="input"
+          <input type="password" [(ngModel)]="password" placeholder="••••••••"
             [disabled]="isLoading()"/>
         </div>
 
-        <!-- Confirm Password -->
-        <div class="form-group">
+        <div class="field">
           <label>Confirm Password</label>
-          <input
-            type="password"
-            [(ngModel)]="confirmPassword"
-            placeholder="••••••••"
-            class="input"
+          <input type="password" [(ngModel)]="confirmPassword" placeholder="••••••••"
             [disabled]="isLoading()"/>
         </div>
 
-        <!-- Favourite Team -->
-        <div class="form-group">
+        <!-- Team picker -->
+        <div class="field">
           <label>Favourite Team</label>
           <div class="teams-grid">
-            <div
-              class="team-card"
-              *ngFor="let team of teams"
+            <div class="team-card" *ngFor="let team of teams"
               [class.selected]="favouriteTeam === team.name"
-              [style.border-color]="favouriteTeam === team.name ? team.color : 'transparent'"
-              [style.background]="favouriteTeam === team.name ? team.color + '22' : ''"
+              [style.--tc]="team.color"
               (click)="selectTeam(team.name)">
-              <span
-                class="team-dot"
-                [style.background]="team.color">
-              </span>
+              <span class="team-dot" [style.background]="team.color"></span>
               <span class="team-name">{{ team.name }}</span>
             </div>
           </div>
         </div>
 
-        <button
-          class="login-btn"
-          (click)="onRegister()"
+        <button class="submit-btn" (click)="onRegister()"
           [disabled]="isLoading() || !name || !email || !password || !confirmPassword">
-          {{ isLoading() ? 'Creating account...' : 'Create Account' }}
+          {{ isLoading() ? '⏳ Creating account...' : 'Create Account →' }}
         </button>
 
-      </div>
+      </ng-container>
 
-      <p class="signup-link">
-        Already have an account?
-        <a routerLink="/auth/login">Sign in</a>
-      </p>
-    </ng-container>
-
+    </div>
   </div>
 </div>
