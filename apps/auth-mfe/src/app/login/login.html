@@ -1,104 +1,105 @@
-<div class="login-container">
-  <div class="login-card">
+<div class="auth-page">
 
-    <!-- Logo -->
-    <div class="logo">🏎️ F1 RaceLab</div>
+  <!-- Ambient background -->
+  <div class="aurora" aria-hidden="true">
+    <span class="aurora-a"></span>
+    <span class="aurora-b"></span>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
 
-    <!-- Success -->
-    <ng-container *ngIf="step() === 'success'">
-      <h2>Welcome! ✅</h2>
-      <p class="subtitle">You are now signed in!</p>
-      <button class="login-btn" (click)="onLogout()">
-        Sign Out
+  <!-- Left panel — branding -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo">
+        <span class="dot"></span>F1 RACELAB
+      </div>
+      <div class="gantry" aria-label="F1 start lights">
+        <div class="light-col" *ngFor="let c of [1,2,3,4,5]">
+          <span class="bulb lit"></span>
+          <span class="bulb lit"></span>
+        </div>
+      </div>
+      <h2 class="brand-headline display">PREDICT<span class="l2">THE RACE.</span></h2>
+      <p class="brand-sub">AI-powered race predictions, live timing and F1 strategy — all in one pit wall.</p>
+      <div class="brand-chips">
+        <span class="chip">🤖 Claude AI</span>
+        <span class="chip g">📊 Live F1 data</span>
+        <span class="chip p">🔮 Strategy sim</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="form-panel">
+    <div class="form-card">
+
+      <!-- Header -->
+      <div class="form-header">
+        <div class="form-eyebrow">Welcome back</div>
+        <h1 class="display">Sign In</h1>
+        <p class="form-sub">New to RaceLab? <a routerLink="/auth/register" class="link">Create an account</a></p>
+      </div>
+
+      <!-- Guest CTA -->
+      <button class="guest-btn" (click)="loginAsGuest()" [disabled]="isLoading()">
+        <span class="guest-icon">👀</span>
+        <div class="guest-text">
+          <span class="guest-title">Try as Guest</span>
+          <span class="guest-hint">guest&#64;f1racelab.com · no signup needed</span>
+        </div>
+        <span class="guest-arrow">→</span>
       </button>
-    </ng-container>
 
-    <!-- New Password Required -->
-    <ng-container *ngIf="step() === 'new-password'">
-      <h2>Set New Password</h2>
-      <p class="subtitle">Please set a permanent password</p>
+      <div class="divider"><span>or sign in with email</span></div>
 
-      <div class="error-banner" *ngIf="error()">
-        ❌ {{ error() }}
-      </div>
+      <!-- Form -->
+      <form (ngSubmit)="onLogin()" #loginForm="ngForm">
 
-      <div class="form">
-        <div class="form-group">
-          <label>Your Name</label>
+        <div class="field">
+          <label for="email">Email</label>
           <input
-            type="text"
-            [(ngModel)]="name"
-            placeholder="John Doe"
-            class="input"
-            [disabled]="isLoading()"/>
-        </div>
-
-        <div class="form-group">
-          <label>New Password</label>
-          <input
-            type="password"
-            [(ngModel)]="newPassword"
-            placeholder="••••••••"
-            class="input"
-            [disabled]="isLoading()"/>
-        </div>
-
-        <button
-          class="login-btn"
-          (click)="onSetNewPassword()"
-          [disabled]="isLoading() || !newPassword || !name">
-          {{ isLoading() ? 'Setting password...' : 'Set Password' }}
-        </button>
-      </div>
-    </ng-container>
-
-    <!-- Login Form -->
-    <ng-container *ngIf="step() === 'login'">
-      <h2>Welcome Back</h2>
-      <p class="subtitle">Sign in to your account</p>
-
-      <div class="error-banner" *ngIf="error()">
-        ❌ {{ error() }}
-      </div>
-
-      <div class="form">
-        <div class="form-group">
-          <label>Email</label>
-          <input
+            id="email"
             type="email"
             [(ngModel)]="email"
-            placeholder="your@email.com"
-            class="input"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
             [disabled]="isLoading()"/>
         </div>
 
-        <div class="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            [(ngModel)]="password"
-            placeholder="••••••••"
-            class="input"
-            [disabled]="isLoading()"/>
+        <div class="field">
+          <label for="password">
+            Password
+            <a routerLink="/auth/forgot-password" class="link forgot">Forgot password?</a>
+          </label>
+          <div class="input-wrap">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              [disabled]="isLoading()"/>
+            <button type="button" class="toggle-pw" (click)="togglePassword()" tabindex="-1">
+              {{ showPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
         </div>
 
-        <button
-          class="login-btn"
-          (click)="onLogin()"
-          [disabled]="isLoading() || !email || !password">
-          {{ isLoading() ? 'Signing in...' : 'Sign In' }}
+        <!-- Error -->
+        <div class="error-msg" *ngIf="error()">
+          <span>⚠️</span> {{ error() }}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit-btn" [disabled]="isLoading()">
+          <span *ngIf="!isLoading()">Sign In →</span>
+          <span *ngIf="isLoading()" class="spinner">⏳ Signing in...</span>
         </button>
-      </div>
 
-      <p class="signup-link">
-        Don't have an account?
-        <a routerLink="/auth/register">Sign up</a>
-      </p>
+      </form>
 
-      <p class="signup-link">
-        <a routerLink="/auth/forgot-password">Forgot password?</a>
-      </p>
-    </ng-container>
-
+    </div>
   </div>
 </div>
