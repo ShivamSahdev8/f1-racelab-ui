@@ -1,20 +1,22 @@
 .car-visual {
-  background: linear-gradient(180deg, #0a0a1a 0%, #16213e 100%);
-  border-radius: 12px;
+  background: linear-gradient(180deg, #0B1020 0%, #111829 100%);
+  border-radius: 22px;
   padding: 24px 24px 16px 24px;
   position: relative;
   overflow: hidden;
   min-height: 280px;
   transition: background 0.5s;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 64px rgba(0,0,0,.4);
 }
 
 .car-visual.damp {
-  background: linear-gradient(180deg, #1a2a3e 0%, #162030 100%);
+  background: linear-gradient(180deg, #101a2c 0%, #121c2e 100%);
 }
 
 .car-visual.rain {
-  background: linear-gradient(180deg, #0a1525 0%, #0f1a2e 100%);
+  background: linear-gradient(180deg, #0a1320 0%, #0e1626 100%);
 }
 
 /* Weather */
@@ -200,30 +202,38 @@
 }
 
 .tyre-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: .12em;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .downforce-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #aaa;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  color: #868EA6;
   background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .weather-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .1em;
   color: #6cb4ff;
   background: rgba(100, 150, 255, 0.1);
+  border: 1px solid rgba(100, 150, 255, 0.25);
 }
 
 /* Top-down tyre compound stripe pulse */

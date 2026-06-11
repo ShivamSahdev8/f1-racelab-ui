@@ -16,15 +16,15 @@
   <div class="gauge-container" *ngIf="winChance > 0">
     <svg viewBox="0 0 200 120" class="gauge">
       <path d="M20,100 A80,80 0 0,1 180,100"
-        fill="none" stroke="#1a4a8a" stroke-width="12" stroke-linecap="round"/>
+        fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12" stroke-linecap="round"/>
       <path d="M20,100 A80,80 0 0,1 180,100"
         fill="none"
         [attr.stroke]="winChance >= 60 ? '#00c800' : winChance >= 30 ? '#ffd700' : '#e10600'"
         stroke-width="12" stroke-linecap="round"
         [style.strokeDasharray]="(winChance / 100 * 251) + ' 251'"
         class="gauge-fill"/>
-      <text x="100" y="88" text-anchor="middle" fill="white" font-size="30" font-weight="800" font-family="Arial">{{ winChance }}%</text>
-      <text x="100" y="108" text-anchor="middle" fill="#888" font-size="10" font-family="Arial">WIN CHANCE</text>
+      <text x="100" y="88" text-anchor="middle" fill="#F4F6FF" font-size="30" font-weight="800" font-family="Saira, sans-serif">{{ winChance }}%</text>
+      <text x="100" y="108" text-anchor="middle" fill="#868EA6" font-size="10" font-family="JetBrains Mono, monospace" letter-spacing="2">WIN CHANCE</text>
     </svg>
   </div>
 
