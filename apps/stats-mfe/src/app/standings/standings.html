@@ -1,74 +1,160 @@
 <div class="standings">
 
-  <!-- Header -->
-  <div class="standings-header">
-    <h2>🏆 Championship Standings</h2>
-    <div class="season">2026 Season</div>
+  <!-- Aurora atmospheric background -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-a"></div>
+    <div class="aurora-b"></div>
   </div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button
-      class="tab"
-      [class.active]="activeTab === 'drivers'"
-      (click)="setTab('drivers')">
-      Drivers
-    </button>
-    <button
-      class="tab"
-      [class.active]="activeTab === 'teams'"
-      (click)="setTab('teams')">
-      Teams
-    </button>
+  <!-- vm object is always truthy, fav resolves to team name or null -->
+  <div class="page-content" *ngIf="{ fav: favouriteTeam$ | async } as vm">
+
+    <!-- Header -->
+    <header class="standings-header">
+      <div class="header-left">
+        <div class="trophy-ring" aria-hidden="true">🏆</div>
+        <div class="header-titles">
+          <div class="eyebrow">CHAMPIONSHIP</div>
+          <h1 class="page-title">STANDINGS</h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="fav-chip" *ngIf="vm.fav">★ TEAM {{ vm.fav.toUpperCase() }}</span>
+        <span class="season-chip">2026 · SEASON</span>
+      </div>
+    </header>
+
+    <!-- Segmented Tabs -->
+    <div class="tabs">
+      <button
+        class="tab"
+        [class.active]="activeTab === 'drivers'"
+        (click)="setTab('drivers')">
+        DRIVERS
+      </button>
+      <button
+        class="tab"
+        [class.active]="activeTab === 'teams'"
+        (click)="setTab('teams')">
+        CONSTRUCTORS
+      </button>
+    </div>
+
+    <!-- Driver Standings -->
+    <ng-container *ngIf="activeTab === 'drivers'">
+      <ng-container *ngIf="driverStandings$ | async as standings; else loading">
+
+        <div class="table-wrap">
+          <div class="table-head head-drivers">
+            <span>POS</span>
+            <span>DRIVER</span>
+            <span>TEAM</span>
+            <span>WINS</span>
+            <span>POINTS</span>
+          </div>
+
+          <div
+            class="standing-row row-drivers"
+            *ngFor="let standing of standings; trackBy: trackByPosition"
+            [class]="getPositionClass(standing.position)"
+            [class.is-fav]="isFavouriteTeam(standing.driver.teamName, vm.fav)"
+            [style.--team-color]="standing.driver.teamColor">
+
+            <div class="pos-cell">
+              <span class="pos-num">{{ standing.position }}</span>
+            </div>
+
+            <div class="name-cell">
+              <span class="primary-name">
+                {{ standing.driver.fullName }}
+                <span class="fav-star" *ngIf="isFavouriteTeam(standing.driver.teamName, vm.fav)" title="Your team">★</span>
+              </span>
+              <div class="points-bar">
+                <div class="points-bar-fill"
+                     [style.width]="getBarWidth(standing.points, standings[0].points)"></div>
+              </div>
+            </div>
+
+            <div class="team-cell">
+              <span class="team-dot"></span>
+              <span class="team-name">{{ standing.driver.teamName }}</span>
+            </div>
+
+            <div class="wins-cell">
+              <span class="wins-chip" [class.has-wins]="standing.wins > 0">{{ standing.wins }}</span>
+            </div>
+
+            <div class="points-cell">
+              <span class="points-num">{{ standing.points }}</span>
+              <span class="points-label">PTS</span>
+            </div>
+
+          </div>
+        </div>
+
+      </ng-container>
+    </ng-container>
+
+    <!-- Team Standings -->
+    <ng-container *ngIf="activeTab === 'teams'">
+      <ng-container *ngIf="teamStandings$ | async as standings; else loading">
+
+        <div class="table-wrap">
+          <div class="table-head head-teams">
+            <span>POS</span>
+            <span>TEAM</span>
+            <span>WINS</span>
+            <span>POINTS</span>
+          </div>
+
+          <div
+            class="standing-row row-teams"
+            *ngFor="let standing of standings; trackBy: trackByPosition"
+            [class]="getPositionClass(standing.position)"
+            [class.is-fav]="isFavouriteTeam(standing.teamName, vm.fav)"
+            [style.--team-color]="standing.teamColor">
+
+            <div class="pos-cell">
+              <span class="pos-num">{{ standing.position }}</span>
+            </div>
+
+            <div class="name-cell">
+              <span class="primary-name">
+                {{ standing.teamName }}
+                <span class="fav-badge" *ngIf="isFavouriteTeam(standing.teamName, vm.fav)">★ YOUR TEAM</span>
+              </span>
+              <div class="points-bar">
+                <div class="points-bar-fill"
+                     [style.width]="getBarWidth(standing.points, standings[0].points)"></div>
+              </div>
+            </div>
+
+            <div class="wins-cell">
+              <span class="wins-chip" [class.has-wins]="standing.wins > 0">{{ standing.wins }}</span>
+            </div>
+
+            <div class="points-cell">
+              <span class="points-num">{{ standing.points }}</span>
+              <span class="points-label">PTS</span>
+            </div>
+
+          </div>
+        </div>
+
+      </ng-container>
+    </ng-container>
+
+    <!-- Loading -->
+    <ng-template #loading>
+      <div class="loading-state">
+        <div class="f1-tire" aria-hidden="true">
+          <div class="tire-hub"></div>
+        </div>
+        <p class="loading-label">LOADING CHAMPIONSHIP DATA</p>
+      </div>
+    </ng-template>
+
   </div>
-
-  <!-- Driver Standings -->
-  <ng-container *ngIf="activeTab === 'drivers'">
-    <ng-container *ngIf="driverStandings$ | async as standings; else loading">
-
-      <div class="table-header">
-        <span>POS</span>
-        <span>DRIVER</span>
-        <span>TEAM</span>
-        <span>WINS</span>
-        <span>POINTS</span>
-      </div>
-
-      <div class="standing-row" *ngFor="let standing of standings">
-        <span class="position">{{ standing.position }}</span>
-        <span class="driver-name">{{ standing.driver.fullName }}</span>
-        <span class="team-name">{{ standing.driver.teamName }}</span>
-        <span class="wins">{{ standing.wins }}</span>
-        <span class="points">{{ standing.points }}</span>
-      </div>
-
-    </ng-container>
-  </ng-container>
-
-  <!-- Team Standings -->
-  <ng-container *ngIf="activeTab === 'teams'">
-    <ng-container *ngIf="teamStandings$ | async as standings; else loading">
-
-      <div class="table-header">
-        <span>POS</span>
-        <span>TEAM</span>
-        <span>WINS</span>
-        <span>POINTS</span>
-      </div>
-
-      <div class="standing-row" *ngFor="let standing of standings">
-        <span class="position">{{ standing.position }}</span>
-        <span class="team-name">{{ standing.teamName }}</span>
-        <span class="wins">{{ standing.wins }}</span>
-        <span class="points">{{ standing.points }}</span>
-      </div>
-
-    </ng-container>
-  </ng-container>
-
-  <!-- Loading -->
-  <ng-template #loading>
-    <div class="loading">⏳ Loading standings...</div>
-  </ng-template>
 
 </div>
