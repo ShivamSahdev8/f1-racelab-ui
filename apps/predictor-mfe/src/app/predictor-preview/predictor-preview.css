@@ -559,15 +559,21 @@ label {
 .race-card {
   display: flex; align-items: center; gap: 24px;
   background: rgba(255,255,255,.02);
-  border: 1px solid rgba(255,255,255,.07);
-  padding: 28px 32px; border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 28px 32px 28px 36px; border-radius: 22px;
   margin-bottom: 20px;
+  position: relative; overflow: hidden;
+  backdrop-filter: blur(12px);
 }
-.race-flag { font-size: 52px; }
+.race-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: linear-gradient(180deg, #FF2A24, #E10600);
+}
+.race-flag { font-size: 60px; }
 .race-info { flex: 1; }
 .race-info h3 {
   font-family: 'Saira', sans-serif; font-weight: 800;
-  font-size: 24px; margin: 4px 0 6px;
+  font-size: 26px; margin: 6px 0 8px; color: #F4F6FF;
 }
 
 .stats-row {
@@ -578,17 +584,24 @@ label {
 .stat-card {
   background: rgba(255,255,255,.02);
   border: 1px solid rgba(255,255,255,.07);
-  padding: 24px; border-radius: 18px; text-align: center;
+  padding: 30px 24px; border-radius: 18px; text-align: center;
+  backdrop-filter: blur(12px);
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0;
+  height: 2px; background: linear-gradient(90deg, #A742FF, rgba(167,66,255,0));
 }
 .stat-number {
   display: block;
   font-family: 'Saira', sans-serif; font-weight: 900;
-  font-size: 28px; color: #FF2A24; margin-bottom: 4px;
+  font-size: 34px; color: #FF2A24; margin-bottom: 6px;
+  text-shadow: 0 0 30px rgba(225,6,0,.35);
 }
 .stat-text {
   font-family: 'JetBrains Mono', monospace;
   color: #868EA6; font-size: 10px;
-  text-transform: uppercase; letter-spacing: .14em;
+  text-transform: uppercase; letter-spacing: .16em;
 }
 
 .blurred { filter: blur(3px); pointer-events: none; user-select: none; }
@@ -597,31 +610,51 @@ label {
 .login-overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(5px);
+  background: rgba(7,10,18,.65);
+  backdrop-filter: blur(12px);
   z-index: 100;
 }
 .overlay-card {
-  background: #111829;
-  border: 1px solid rgba(255,255,255,.1);
-  padding: 46px; border-radius: 24px;
-  text-align: center; max-width: 480px; width: 100%;
-  box-shadow: 0 30px 80px rgba(0,0,0,.7);
+  position: relative;
+  background: linear-gradient(160deg, #12162a 0%, #0c1020 100%);
+  border: 1px solid rgba(167,66,255,.2);
+  padding: 52px 48px 48px; border-radius: 28px;
+  text-align: center; max-width: 500px; width: 100%;
+  box-shadow: 0 40px 100px rgba(0,0,0,.8), 0 0 60px rgba(167,66,255,.08);
+  overflow: hidden;
 }
-.overlay-icon { font-size: 50px; margin-bottom: 16px; }
+.overlay-card::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #A742FF, #E10600, #FF2A24);
+}
+.overlay-card::after {
+  content: ""; position: absolute;
+  width: 340px; height: 340px; border-radius: 50%;
+  background: #A742FF; filter: blur(120px); opacity: .07;
+  top: -160px; left: 50%; transform: translateX(-50%);
+  pointer-events: none;
+}
+.overlay-icon { font-size: 56px; margin-bottom: 22px; position: relative; }
 .overlay-card h2 {
   font-family: 'Saira', sans-serif; font-weight: 900;
   color: #F4F6FF; font-size: 26px; letter-spacing: -.01em;
-  margin: 0 0 12px;
+  margin: 0 0 12px; position: relative;
 }
-.overlay-card p { color: #868EA6; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+.overlay-card p {
+  color: #868EA6; font-size: 14px; line-height: 1.7;
+  margin: 0 0 26px; position: relative;
+}
 .overlay-features {
-  display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px;
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px;
+  position: relative;
 }
 .overlay-features span {
-  font-size: 13px; color: #F4F6FF;
-  padding: 10px 16px;
+  font-size: 13px; color: #F4F6FF; text-align: left;
+  padding: 11px 16px;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
+  border-left: 3px solid #A742FF;
   border-radius: 10px;
 }
 .overlay-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
