@@ -1,139 +1,381 @@
+/* ── Root ──────────────────────────────────────────── */
+:host {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
 .live-timing {
-  padding: 24px;
-  background: #1a1a2e;
+  position: relative;
   min-height: 100vh;
-  color: white;
-  font-family: 'Arial', sans-serif;
+  background: #070A12;
+  color: #F4F6FF;
+  overflow-x: hidden;
 }
 
-.safety-car-banner {
-  background: #ffd700;
-  color: black;
-  text-align: center;
-  padding: 12px;
-  font-weight: bold;
-  font-size: 18px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  animation: pulse 1s infinite;
+/* ── Aurora atmospheric glow ──────────────────────── */
+.aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.aurora-a {
+  position: absolute;
+  width: 700px; height: 700px; border-radius: 50%;
+  background: #E10600; filter: blur(160px); opacity: .1;
+  top: -220px; left: -180px;
+}
+.aurora-b {
+  position: absolute;
+  width: 560px; height: 560px; border-radius: 50%;
+  background: #A742FF; filter: blur(160px); opacity: .09;
+  bottom: -100px; right: -140px;
+}
+.grain {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.7; }
+/* ── Safety Car Banner ────────────────────────────── */
+.sc-banner {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; gap: 18px;
+  padding: 16px 28px;
+  background: linear-gradient(90deg, rgba(255,215,0,.12) 0%, rgba(255,215,0,.06) 50%, rgba(255,215,0,.12) 100%);
+  border-bottom: 2px solid rgba(255,215,0,.5);
+  overflow: hidden;
+  animation: sc-pulse 1.8s ease-in-out infinite;
+}
+.sc-flag {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    #FFD700 0px, #FFD700 6px,
+    #111 6px, #111 12px
+  );
+  border-radius: 5px;
+}
+.sc-flag--right { margin-left: auto; }
+.sc-label {
+  font-family: 'Saira', sans-serif; font-weight: 900;
+  font-size: 36px; color: #FFD700; letter-spacing: -.02em; line-height: 1;
+}
+.sc-text { display: flex; flex-direction: column; gap: 3px; }
+.sc-title {
+  font-family: 'Saira', sans-serif; font-weight: 800;
+  font-size: 16px; letter-spacing: .08em; color: #FFD700;
+}
+.sc-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .22em; color: rgba(255,215,0,.6); text-transform: uppercase;
+}
+@keyframes sc-pulse {
+  0%, 100% { background: linear-gradient(90deg, rgba(255,215,0,.1) 0%, rgba(255,215,0,.05) 50%, rgba(255,215,0,.1) 100%); border-bottom-color: rgba(255,215,0,.4); }
+  50%       { background: linear-gradient(90deg, rgba(255,215,0,.18) 0%, rgba(255,215,0,.1) 50%, rgba(255,215,0,.18) 100%); border-bottom-color: rgba(255,215,0,.75); }
 }
 
+/* ── Page content ─────────────────────────────────── */
+.page-content {
+  position: relative; z-index: 2;
+  max-width: 1200px; margin: 0 auto;
+  padding: 80px 28px 60px;
+}
+
+/* ── Header ───────────────────────────────────────── */
 .timing-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 40px; flex-wrap: wrap;
+}
+.header-left { display: flex; align-items: center; gap: 22px; }
+.header-right { display: flex; align-items: center; gap: 14px; }
+
+/* ── F1 Tire Component ────────────────────────────── */
+/*
+ * Layered tire anatomy:
+ *   outer element     = rim (conic spokes)
+ *   box-shadow spread = rubber sidewall
+ *   ::before          = dark inner hub background
+ *   .tire-hub child   = glowing red center bolt
+ */
+.f1-tire {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  animation: tire-spin 2.2s linear infinite;
+  /* Spoke rim */
+  background: conic-gradient(
+    from 0deg,
+    #1b1b2f 0deg 64deg,
+    rgba(255,255,255,.11) 64deg 72deg,
+    #1b1b2f 72deg 136deg,
+    rgba(255,255,255,.11) 136deg 144deg,
+    #1b1b2f 144deg 208deg,
+    rgba(255,255,255,.11) 208deg 216deg,
+    #1b1b2f 216deg 280deg,
+    rgba(255,255,255,.11) 280deg 288deg,
+    #1b1b2f 288deg 352deg,
+    rgba(255,255,255,.11) 352deg 360deg
+  );
+  /* Rubber ring via box-shadow */
+  box-shadow:
+    0 0 0 10px #101010,
+    0 0 0 11px rgba(255,255,255,.05),
+    0 0 30px rgba(225,6,0,.3),
+    0 0 60px rgba(225,6,0,.12);
+}
+.f1-tire--lg {
+  width: 72px; height: 72px;
+  box-shadow:
+    0 0 0 14px #101010,
+    0 0 0 15px rgba(255,255,255,.05),
+    0 0 40px rgba(225,6,0,.35),
+    0 0 80px rgba(225,6,0,.15);
+}
+.f1-tire::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, #15152a 0%, #0e0e1e 100%);
+}
+.tire-hub {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px; height: 11px; border-radius: 50%;
+  background: radial-gradient(circle, #ff4f4f, #E10600);
+  box-shadow: 0 0 14px rgba(225,6,0,1), 0 0 5px rgba(225,6,0,.6);
+  z-index: 2;
+}
+.f1-tire--lg .tire-hub { width: 16px; height: 16px; }
+
+@keyframes tire-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.f1-tire.fast-spin { animation-duration: .4s; }
+
+/* ── Header titles ────────────────────────────────── */
+.header-titles { display: flex; flex-direction: column; gap: 4px; }
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700; letter-spacing: .22em;
+  color: #E10600; text-transform: uppercase;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #E10600;
+  box-shadow: 0 0 6px rgba(225,6,0,.9);
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .25; }
 }
 
-.timing-header h2 {
-  font-size: 24px;
-  margin: 0;
+.page-title {
+  font-family: 'Saira', sans-serif; font-weight: 900;
+  font-size: 30px; letter-spacing: -.02em; line-height: 1; margin: 0;
+  background: linear-gradient(120deg, #F4F6FF 30%, #9aa3bd);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ── Header right ─────────────────────────────────── */
+.session-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .18em; color: #868EA6; text-transform: uppercase;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  padding: 7px 14px; border-radius: 999px;
 }
 
 .refresh-btn {
-  background: #e10600;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Saira', sans-serif; font-weight: 700;
+  font-size: 13px; letter-spacing: .05em; color: #fff;
+  background: linear-gradient(135deg, #FF2A24, #E10600);
+  border: none; padding: 10px 22px; border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 6px 20px rgba(225,6,0,.4);
 }
-
 .refresh-btn:hover {
-  background: #c00500;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 12px 30px rgba(225,6,0,.56);
+}
+.refresh-icon {
+  font-size: 17px; display: inline-block;
+  transition: transform .3s;
+}
+.refresh-icon.spinning { animation: spin-once .6s ease; }
+@keyframes spin-once {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-.table-header {
+/* ── Timing Table ─────────────────────────────────── */
+.timing-table-wrap {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 22px; overflow: hidden;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 24px 64px rgba(0,0,0,.4);
+}
+
+.table-head {
   display: grid;
-  grid-template-columns: 50px 180px 150px 100px 100px 120px;
-  padding: 10px 16px;
-  background: #0f3460;
-  border-radius: 4px 4px 0 0;
-  font-size: 11px;
-  font-weight: bold;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
+  grid-template-columns: 60px minmax(160px,1fr) 160px 80px 130px 140px;
+  padding: 13px 22px;
+  background: rgba(255,255,255,.035);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  color: #868EA6; text-transform: uppercase; letter-spacing: .22em;
 }
 
+/* ── Driver rows ──────────────────────────────────── */
 .driver-row {
   display: grid;
-  grid-template-columns: 50px 180px 150px 100px 100px 120px;
-  padding: 12px 16px;
-  background: #16213e;
-  margin-bottom: 2px;
-  cursor: pointer;
-  transition: background 0.2s;
-  border-left: 4px solid transparent;
-  align-items: center;
+  grid-template-columns: 60px minmax(160px,1fr) 160px 80px 130px 140px;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  cursor: pointer; align-items: center;
+  position: relative; overflow: hidden;
+  border-left: 3px solid var(--team-color, transparent);
+  transition: background .18s;
+}
+.driver-row:last-child { border-bottom: none; }
+.driver-row:hover { background: rgba(255,255,255,.035); }
+
+/* Podium tints */
+.driver-row.pos-p1 { background: rgba(255,215,0,.035); }
+.driver-row.pos-p2 { background: rgba(192,192,192,.025); }
+.driver-row.pos-p3 { background: rgba(205,127,50,.025); }
+.driver-row.pos-p1:hover { background: rgba(255,215,0,.055); }
+.driver-row.pos-p2:hover { background: rgba(192,192,192,.04); }
+.driver-row.pos-p3:hover { background: rgba(205,127,50,.04); }
+
+/* ── Cells ────────────────────────────────────────── */
+.pos-cell { display: flex; align-items: center; }
+.pos-num {
+  font-family: 'Saira', sans-serif; font-weight: 900;
+  font-size: 24px; line-height: 1; color: #F4F6FF;
+}
+.pos-p1 .pos-num { color: #FFD700; }
+.pos-p2 .pos-num { color: #C0C0C0; }
+.pos-p3 .pos-num { color: #CD7F32; }
+
+.driver-cell { display: flex; flex-direction: column; gap: 4px; }
+.driver-abbr {
+  font-family: 'Saira', sans-serif; font-weight: 800;
+  font-size: 18px; letter-spacing: .04em; color: #F4F6FF; line-height: 1;
+}
+.driver-name { font-size: 11px; color: #868EA6; }
+
+.team-cell {}
+.team-name { font-size: 13px; color: #868EA6; }
+
+/* ── Tyre Badge ───────────────────────────────────── */
+/*
+ * Mimics a real tyre cross-section: dark rubber center,
+ * compound-colored sidewall ring, compound-colored glow.
+ */
+.tyre-cell { display: flex; align-items: center; }
+.tyre-badge {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #0c0c18;
+  border: 6px solid var(--tc, #868EA6);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 10px; color: var(--tc, #868EA6);
+  box-shadow: 0 0 10px var(--tc), 0 2px 8px rgba(0,0,0,.5);
+  flex-shrink: 0; line-height: 1;
+  transition: box-shadow .2s;
+}
+.driver-row:hover .tyre-badge {
+  box-shadow: 0 0 16px var(--tc), 0 2px 8px rgba(0,0,0,.5);
 }
 
-.driver-row:hover {
-  background: #0f3460;
+/* ── Gap cell ─────────────────────────────────────── */
+.gap-cell {}
+.gap-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 500; color: #868EA6;
+}
+.gap-value.is-leader {
+  font-size: 9px; font-weight: 700; letter-spacing: .12em;
+  color: #00D767;
+  background: rgba(0,215,103,.1);
+  padding: 5px 9px; border-radius: 7px;
+  border: 1px solid rgba(0,215,103,.3);
+  white-space: nowrap;
 }
 
-.position {
-  font-weight: bold;
-  font-size: 20px;
-  color: white;
+/* ── Lap time ─────────────────────────────────────── */
+.lap-cell {}
+.lap-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 500; color: #F4F6FF;
 }
 
-.driver-info {
-  display: flex;
-  flex-direction: column;
+/* ── Loading State ────────────────────────────────── */
+.loading-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 28px; padding: 100px 24px;
+}
+.loading-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .28em;
+  color: #868EA6; text-transform: uppercase;
+  animation: label-pulse 1.6s ease-in-out infinite;
+}
+@keyframes label-pulse {
+  0%, 100% { opacity: .35; }
+  50%       { opacity: 1; }
 }
 
-.abbreviation {
-  font-weight: bold;
-  font-size: 16px;
-  letter-spacing: 1px;
+.loading-dots {
+  display: flex; gap: 8px;
+}
+.loading-dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #E10600;
+  animation: dot-bounce .9s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .18s; }
+.loading-dots span:nth-child(3) { animation-delay: .36s; }
+@keyframes dot-bounce {
+  0%, 100% { transform: translateY(0); opacity: .3; }
+  50%       { transform: translateY(-8px); opacity: 1; }
 }
 
-.full-name {
-  font-size: 11px;
-  color: #888;
-  margin-top: 2px;
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .table-head,
+  .driver-row {
+    grid-template-columns: 48px 1fr 0 70px 100px 120px;
+  }
+  .table-head span:nth-child(3),
+  .team-cell { display: none; }
 }
 
-.team-name {
-  color: #aaa;
-  font-size: 13px;
+@media (max-width: 640px) {
+  .page-content { padding: 28px 16px 48px; }
+  .page-title { font-size: 24px; }
+  .table-head,
+  .driver-row {
+    grid-template-columns: 40px 1fr 60px 90px;
+  }
+  .table-head span:nth-child(3),
+  .table-head span:nth-child(5),
+  .team-cell,
+  .gap-cell { display: none; }
+  .timing-header { flex-direction: column; align-items: flex-start; }
+  .header-right { align-self: flex-end; }
 }
 
-.tyre {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.compound-name {
-  color: #aaa;
-  font-size: 11px;
-}
-
-.gap {
-  font-size: 13px;
-  color: #aaa;
-}
-
-.last-lap {
-  font-size: 13px;
-  font-family: monospace;
-  color: #aaa;
-}
-
-.loading {
-  text-align: center;
-  padding: 48px;
-  font-size: 18px;
-  color: #888;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
