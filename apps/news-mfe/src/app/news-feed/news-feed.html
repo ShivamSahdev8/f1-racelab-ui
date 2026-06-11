@@ -1,43 +1,91 @@
 <div class="news-feed">
 
-  <!-- Header -->
-  <div class="news-header">
-    <h2>📰 F1 News</h2>
-    <p class="subtitle">Latest from the paddock</p>
+  <!-- Aurora atmospheric background -->
+  <div class="aurora" aria-hidden="true">
+    <div class="aurora-a"></div>
+    <div class="aurora-b"></div>
   </div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <!-- News Grid -->
-  <ng-container *ngIf="news$ | async as articles; else loading">
-    <div class="news-grid">
-      <div
-        class="news-card"
-        *ngFor="let article of articles"
-        (click)="openArticle(article.link)">
+  <!-- vm object is always truthy, fav resolves to team name or null -->
+  <div class="page-content" *ngIf="{ fav: favouriteTeam$ | async } as vm">
 
-        <!-- Thumbnail -->
-        <div
-          class="news-thumbnail"
-          *ngIf="article.thumbnail"
-          [style.backgroundImage]="'url(' + article.thumbnail + ')'">
+    <!-- Header -->
+    <header class="news-header">
+      <div class="header-left">
+        <div class="paddock-ring" aria-hidden="true">📰</div>
+        <div class="header-titles">
+          <div class="eyebrow">PADDOCK FEED</div>
+          <h1 class="page-title">F1 NEWS</h1>
         </div>
-
-        <!-- Content -->
-        <div class="news-content">
-          <span class="news-meta">
-            <span class="news-source">{{ article.source }}</span>
-            <span class="news-date">{{ getTimeAgo(article.pubDate) }}</span>
-          </span>
-          <h3 class="news-title">{{ article.title }}</h3>
-          <p class="news-description">{{ article.description }}</p>
-        </div>
-
       </div>
-    </div>
-  </ng-container>
+      <div class="header-right">
+        <span class="fav-chip" *ngIf="vm.fav" [style.--tc]="getTeamColor(vm.fav)">
+          ★ FOLLOWING {{ vm.fav.toUpperCase() }}
+        </span>
+        <span class="ticker-chip">
+          <span class="ticker-dot"></span>
+          LATEST FROM THE PADDOCK
+        </span>
+      </div>
+    </header>
 
-  <!-- Loading -->
-  <ng-template #loading>
-    <div class="loading">⏳ Loading latest F1 news...</div>
-  </ng-template>
+    <!-- News Grid -->
+    <ng-container *ngIf="news$ | async as articles; else loading">
+      <div class="news-grid">
+        <article
+          class="news-card"
+          *ngFor="let article of articles; let i = index; trackBy: trackByLink"
+          [class.featured]="i === 0"
+          [class.fav-mention]="mentionsFavTeam(article, vm.fav)"
+          [style.--tc]="getTeamColor(vm.fav)"
+          (click)="openArticle(article.link)">
+
+          <!-- Thumbnail -->
+          <div class="news-thumbnail" *ngIf="article.thumbnail">
+            <div
+              class="thumb-img"
+              [style.backgroundImage]="'url(' + article.thumbnail + ')'">
+            </div>
+            <div class="thumb-fade" aria-hidden="true"></div>
+            <span class="featured-tag" *ngIf="i === 0">TOP STORY</span>
+          </div>
+
+          <!-- Content -->
+          <div class="news-content">
+            <div class="news-meta">
+              <span class="news-source">{{ article.source }}</span>
+              <span class="meta-right">
+                <span class="fresh-badge" *ngIf="isFresh(article.pubDate)">NEW</span>
+                <span class="news-date">{{ getTimeAgo(article.pubDate) }}</span>
+              </span>
+            </div>
+
+            <h3 class="news-title">{{ article.title }}</h3>
+            <p class="news-description">{{ article.description }}</p>
+
+            <div class="card-footer">
+              <span class="team-tag" *ngIf="mentionsFavTeam(article, vm.fav)">
+                ★ {{ vm.fav?.toUpperCase() }}
+              </span>
+              <span class="read-more">READ ARTICLE →</span>
+            </div>
+          </div>
+
+        </article>
+      </div>
+    </ng-container>
+
+    <!-- Loading — spinning F1 tire -->
+    <ng-template #loading>
+      <div class="loading-state">
+        <div class="f1-tire" aria-hidden="true">
+          <div class="tire-hub"></div>
+        </div>
+        <p class="loading-label">FETCHING PADDOCK NEWS</p>
+      </div>
+    </ng-template>
+
+  </div>
 
 </div>
