@@ -3,6 +3,20 @@ import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { AuthStateService, AuthUser } from '@f1-racelab/shared-ui';
 
+/** Team accent colors — same palette as the signup team picker */
+const TEAM_COLORS: Record<string, string> = {
+  'ferrari':       '#ED1131',
+  'mclaren':       '#F47600',
+  'red bull':      '#4781D7',
+  'mercedes':      '#00D7B6',
+  'aston martin':  '#229971',
+  'alpine':        '#00A1E8',
+  'williams':      '#1868DB',
+  'racing bulls':  '#6C98FF',
+  'haas':          '#9C9FA2',
+  'audi':          '#F50537',
+};
+
 @Component({
   selector: 'app-fantasy-preview',
   standalone: true,
@@ -27,5 +41,10 @@ export class FantasyPreview {
   constructor(private authState: AuthStateService) {
     this.isLoggedIn$ = this.authState.isLoggedIn$;
     this.user$ = this.authState.user$;
+  }
+
+  getTeamColor(teamName: string | null | undefined): string {
+    if (!teamName) return '#E10600';
+    return TEAM_COLORS[teamName.toLowerCase()] ?? '#E10600';
   }
 }
