@@ -18,52 +18,177 @@
           <h1 class="page-title">FANTASY LEAGUE</h1>
         </div>
       </div>
+      <ng-container *ngIf="user$ | async as user">
+        <span
+          class="fav-chip"
+          *ngIf="user.favouriteTeam"
+          [style.--tc]="getTeamColor(user.favouriteTeam)">
+          ★ {{ user.favouriteTeam.toUpperCase() }} FAN
+        </span>
+      </ng-container>
     </header>
 
     <!-- LOGGED IN VIEW -->
     <ng-container *ngIf="isLoggedIn$ | async; else guestView">
-      <ng-container *ngIf="user$ | async as user">
-        <div class="welcome-section">
-          <div class="welcome-card" [style.--tc]="getTeamColor(user.favouriteTeam)">
-            <div class="welcome-glow" aria-hidden="true"></div>
 
-            <div class="welcome-icon">🏎️</div>
-            <h2>Welcome to Fantasy League, {{ user.name }}!</h2>
-            <p class="welcome-team" *ngIf="user.favouriteTeam">
-              ★ {{ user.favouriteTeam.toUpperCase() }} FAN
-            </p>
-            <p class="welcome-message">
-              Your fantasy dashboard is coming soon. You'll be able to build your dream team,
-              compete with fans worldwide, and track your performance throughout the season.
-            </p>
+      <!-- Tabs -->
+      <div class="view-tabs">
+        <button
+          class="view-tab"
+          [class.active]="activeTab === 'builder'"
+          (click)="setTab('builder')">
+          TEAM BUILDER
+        </button>
+        <button
+          class="view-tab"
+          [class.active]="activeTab === 'leaderboard'"
+          (click)="setTab('leaderboard')">
+          LEADERBOARD
+        </button>
+      </div>
 
-            <div class="coming-soon-features">
-              <div class="feature-card">
-                <span class="feature-icon">💰</span>
-                <h4>Build Your Team</h4>
-                <p>Pick 5 drivers within a $100M budget</p>
+      <!-- ===== TEAM BUILDER ===== -->
+      <ng-container *ngIf="activeTab === 'builder'">
+
+        <!-- Loading -->
+        <div class="loading-state" *ngIf="driversLoading()">
+          <div class="f1-tire" aria-hidden="true">
+            <div class="tire-hub"></div>
+          </div>
+          <p class="loading-label">LOADING THE GRID</p>
+        </div>
+
+        <ng-container *ngIf="!driversLoading()">
+
+          <!-- Budget Bar -->
+          <div class="budget-bar">
+            <div class="budget-info">
+              <span class="budget-label">SPENT</span>
+              <span class="budget-amount">${{ spent() }}M</span>
+            </div>
+            <div class="budget-progress">
+              <div class="budget-fill" [style.width.%]="spentPct()"></div>
+            </div>
+            <div class="budget-info">
+              <span class="budget-label">REMAINING</span>
+              <span class="budget-amount" [class.over]="remaining() < 0">${{ remaining() }}M</span>
+            </div>
+          </div>
+
+          <!-- My Team -->
+          <div class="section">
+            <h3 class="sec-tag">YOUR TEAM ({{ picked().length }}/{{ teamSize }} DRIVERS)</h3>
+            <div class="empty-slots">
+              <div
+                class="slot filled"
+                *ngFor="let driver of picked(); trackBy: trackByDriver"
+                [style.--tc]="getTeamColor(driver.team)">
+                <button
+                  class="slot-remove"
+                  (click)="remove(driver.id)"
+                  [attr.aria-label]="'Remove ' + driver.name">✕</button>
+                <span class="slot-code">{{ driver.id }}</span>
+                <span class="slot-name">{{ driver.name }}</span>
+                <span class="slot-price">${{ driver.price }}M</span>
               </div>
-              <div class="feature-card">
-                <span class="feature-icon">📊</span>
-                <h4>Live Scoring</h4>
-                <p>Watch points update during each race</p>
-              </div>
-              <div class="feature-card">
-                <span class="feature-icon">🏆</span>
-                <h4>Leaderboard</h4>
-                <p>Compete in weekly & season rankings</p>
-              </div>
-              <div class="feature-card">
-                <span class="feature-icon">🔄</span>
-                <h4>Transfers</h4>
-                <p>Swap drivers before each Grand Prix</p>
+              <div class="slot" *ngFor="let _ of emptySlotFillers.slice(picked().length)">
+                <span class="slot-icon">+</span>
+                <span class="slot-text">Pick Driver</span>
               </div>
             </div>
 
-            <div class="coming-badge">
-              <span class="badge-dot"></span>
-              COMING SOON — UNDER DEVELOPMENT
+            <!-- Save row -->
+            <div class="save-row">
+              <span class="save-hint" *ngIf="!teamFull()">
+                Pick {{ teamSize - picked().length }} more driver{{ teamSize - picked().length === 1 ? '' : 's' }} to lock in your team
+              </span>
+              <span class="save-hint saved" *ngIf="teamFull() && !isDirty() && savedAt()">
+                ✓ Team saved — good luck this weekend!
+              </span>
+              <span class="save-hint error" *ngIf="saveError()">{{ saveError() }}</span>
+              <button
+                class="save-btn"
+                *ngIf="teamFull() && isDirty()"
+                (click)="saveTeam()"
+                [disabled]="saving()">
+                {{ saving() ? 'SAVING…' : '🏁 SAVE TEAM' }}
+              </button>
             </div>
+          </div>
+
+          <!-- Available Drivers -->
+          <div class="section">
+            <h3 class="sec-tag">AVAILABLE DRIVERS</h3>
+            <div class="drivers-grid">
+              <div
+                class="driver-card"
+                *ngFor="let driver of drivers(); trackBy: trackByDriver"
+                [class.picked]="isPicked(driver)"
+                [class.unaffordable]="!isPicked(driver) && !canPick(driver)"
+                [style.--tc]="getTeamColor(driver.team)">
+                <div class="driver-info">
+                  <span class="driver-name">{{ driver.name }}</span>
+                  <span class="driver-team">{{ driver.team }}</span>
+                </div>
+                <div class="driver-stats">
+                  <div class="stat">
+                    <span class="stat-value">${{ driver.price }}M</span>
+                    <span class="stat-label">PRICE</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-value">{{ driver.points }}</span>
+                    <span class="stat-label">POINTS</span>
+                  </div>
+                </div>
+                <button
+                  class="pick-btn"
+                  *ngIf="!isPicked(driver)"
+                  (click)="pick(driver)"
+                  [disabled]="!canPick(driver)">
+                  PICK
+                </button>
+                <button
+                  class="pick-btn picked-btn"
+                  *ngIf="isPicked(driver)"
+                  (click)="remove(driver.id)">
+                  ✓ PICKED
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <!-- ===== LEADERBOARD ===== -->
+      <ng-container *ngIf="activeTab === 'leaderboard'">
+
+        <div class="loading-state" *ngIf="leaderboardLoading()">
+          <div class="f1-tire" aria-hidden="true">
+            <div class="tire-hub"></div>
+          </div>
+          <p class="loading-label">FETCHING THE STANDINGS</p>
+        </div>
+
+        <div class="leaderboard" *ngIf="!leaderboardLoading()">
+          <div
+            class="lb-row"
+            *ngFor="let entry of leaderboard(); trackBy: trackByEntry"
+            [class.is-you]="isYou(entry)"
+            [class.p1]="entry.rank === 1"
+            [class.p2]="entry.rank === 2"
+            [class.p3]="entry.rank === 3">
+            <span class="lb-rank">{{ entry.rank }}</span>
+            <span class="lb-name">
+              {{ entry.userName }}
+              <span class="you-badge" *ngIf="isYou(entry)">YOU</span>
+            </span>
+            <span
+              class="lb-team"
+              *ngIf="entry.favouriteTeam"
+              [style.--tc]="getTeamColor(entry.favouriteTeam)">
+              {{ entry.favouriteTeam.toUpperCase() }}
+            </span>
+            <span class="lb-points">{{ entry.totalPoints }} <small>PTS</small></span>
           </div>
         </div>
       </ng-container>
