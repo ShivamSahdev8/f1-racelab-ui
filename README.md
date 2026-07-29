@@ -9,6 +9,7 @@
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
 **🔗 Live demo:** https://d7echn6hj4ca9.cloudfront.net/shell/index.html
+
 **🧠 Backend (AI + infrastructure):** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
 
 > **🚀 Try it instantly — no signup needed**
