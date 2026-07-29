@@ -12,13 +12,7 @@
 **🧠 Backend (AI + infrastructure):** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
 
 > **🚀 Try it instantly — no signup needed**
->
-> | Field | Value |
-> |-------|-------|
-> | Email | `guest@f1racelab.com` |
-> | Password | `GuestRaceLab2026@` |
->
-> Or click **"Try as Guest"** on the login page and it fills in automatically.
+> click **"Try as Guest"** on the login page and it fills in automatically.
 
 ---
 
