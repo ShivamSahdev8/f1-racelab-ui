@@ -31,6 +31,74 @@
     <!-- LOGGED IN VIEW -->
     <ng-container *ngIf="isLoggedIn$ | async; else guestView">
 
+      <!-- ===== UNDER CONSTRUCTION (default landing) ===== -->
+      <ng-container *ngIf="!showPreview()">
+        <ng-container *ngIf="user$ | async as user">
+          <div class="welcome-section">
+            <div class="welcome-card" [style.--tc]="getTeamColor(user.favouriteTeam)">
+              <div class="welcome-glow" aria-hidden="true"></div>
+
+              <div class="construction-icon">🚧</div>
+              <h2>Fantasy League is under construction, {{ user.name }}</h2>
+              <p class="welcome-team" *ngIf="user.favouriteTeam">
+                ★ {{ user.favouriteTeam.toUpperCase() }} FAN
+              </p>
+              <p class="welcome-message">
+                We're building the garage right now. Soon you'll draft five drivers on a
+                $100M budget, score points from real race results, and climb the
+                leaderboard against fans worldwide.
+              </p>
+
+              <div class="coming-soon-features">
+                <div class="feature-card">
+                  <span class="feature-icon">💰</span>
+                  <h4>Build Your Team</h4>
+                  <p>Pick 5 drivers within a $100M budget</p>
+                </div>
+                <div class="feature-card">
+                  <span class="feature-icon">📊</span>
+                  <h4>Live Scoring</h4>
+                  <p>Watch points update during each race</p>
+                </div>
+                <div class="feature-card">
+                  <span class="feature-icon">🏆</span>
+                  <h4>Leaderboard</h4>
+                  <p>Compete in weekly &amp; season rankings</p>
+                </div>
+                <div class="feature-card">
+                  <span class="feature-icon">🔄</span>
+                  <h4>Transfers</h4>
+                  <p>Swap drivers before each Grand Prix</p>
+                </div>
+              </div>
+
+              <div class="construction-actions">
+                <button class="preview-btn" (click)="openPreview()">
+                  👀 Preview the Team Builder
+                </button>
+                <div class="coming-badge">
+                  <span class="badge-dot"></span>
+                  COMING SOON — UNDER DEVELOPMENT
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <!-- ===== PREVIEW OF THE FINISHED UI ===== -->
+      <ng-container *ngIf="showPreview()">
+
+      <!-- Preview banner -->
+      <div class="preview-banner">
+        <span class="preview-dot"></span>
+        <div class="preview-copy">
+          <strong>PREVIEW MODE</strong>
+          <span>A sneak peek at the finished Fantasy League — picks are for demo only and won't count towards the real season.</span>
+        </div>
+        <button class="preview-exit" (click)="closePreview()">← BACK</button>
+      </div>
+
       <!-- Tabs -->
       <div class="view-tabs">
         <button
@@ -103,7 +171,7 @@
                 Pick {{ teamSize - picked().length }} more driver{{ teamSize - picked().length === 1 ? '' : 's' }} to lock in your team
               </span>
               <span class="save-hint saved" *ngIf="teamFull() && !isDirty() && savedAt()">
-                ✓ Team saved — good luck this weekend!
+                ✓ Saved in this browser — preview only
               </span>
               <span class="save-hint error" *ngIf="saveError()">{{ saveError() }}</span>
               <button
@@ -191,6 +259,7 @@
             <span class="lb-points">{{ entry.totalPoints }} <small>PTS</small></span>
           </div>
         </div>
+      </ng-container>
       </ng-container>
     </ng-container>
 
