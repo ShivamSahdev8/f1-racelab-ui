@@ -45,6 +45,12 @@ export class FantasyPreview {
   readonly teamSize = FANTASY_TEAM_SIZE;
   readonly emptySlotFillers = Array.from({ length: FANTASY_TEAM_SIZE });
 
+  /**
+   * Fantasy is still under construction. Logged-in users land on the
+   * coming-soon card and can opt into a preview of the finished UI.
+   */
+  showPreview = signal(false);
+
   // Tabs
   activeTab: ActiveTab = 'builder';
 
@@ -91,8 +97,18 @@ export class FantasyPreview {
 
     this.authState.user$.subscribe(user => {
       this.userId = user?.email ?? null;
-      if (user) this.loadBuilder();
     });
+  }
+
+  // ── Preview mode ────────────────────────────────────────────
+  openPreview(): void {
+    this.showPreview.set(true);
+    this.activeTab = 'builder';
+    if (!this.drivers().length) this.loadBuilder();
+  }
+
+  closePreview(): void {
+    this.showPreview.set(false);
   }
 
   // ── Data loading ────────────────────────────────────────────
