@@ -1,247 +1,629 @@
+:host {
+  display: block;
+}
 .car-visual {
-  background: linear-gradient(180deg, #0B1020 0%, #111829 100%);
-  border-radius: 22px;
-  padding: 24px 24px 16px 24px;
   position: relative;
   overflow: hidden;
-  min-height: 280px;
-  transition: background 0.5s;
-  border: 1px solid rgba(255,255,255,0.07);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 24px 64px rgba(0,0,0,.4);
+  isolation: isolate;
+  color: #f4f6ff;
+  background: radial-gradient(
+    ellipse at 50% 38%,
+    #1c2838 0%,
+    #101725 42%,
+    #0b101b 75%
+  );
+  border: 1px solid #ffffff12;
+  border-radius: 22px;
+  box-shadow: 0 24px 64px #0004;
 }
-
-.car-visual.damp {
-  background: linear-gradient(180deg, #101a2c 0%, #121c2e 100%);
+.car-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0 18% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b4c9ec50, transparent);
 }
-
 .car-visual.rain {
-  background: linear-gradient(180deg, #0a1320 0%, #0e1626 100%);
+  background: radial-gradient(ellipse at 50% 38%, #1a3045, #0b1422 70%);
 }
-
-/* Weather */
-.weather-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 1;
+.car-visual.damp {
+  background: radial-gradient(ellipse at 50% 38%, #223046, #0c1421 70%);
 }
-
-.raindrop {
-  position: absolute;
-  width: 2px;
-  height: 15px;
-  background: linear-gradient(180deg, transparent, rgba(100, 150, 255, 0.5));
-  border-radius: 2px;
-  animation: rain 0.8s linear infinite;
-}
-
-.car-visual.rain .raindrop {
-  height: 25px;
-  width: 2px;
-  animation-duration: 0.5s;
-  background: linear-gradient(180deg, transparent, rgba(100, 150, 255, 0.7));
-}
-
-@keyframes rain {
-  0% { top: -20px; opacity: 0; }
-  20% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-
-.sun {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 28px;
-  animation: sunGlow 3s ease-in-out infinite;
-}
-
-.cloud {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-size: 28px;
-  animation: cloudDrift 4s ease-in-out infinite;
-}
-
-@keyframes sunGlow {
-  0%, 100% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.15); filter: brightness(1.3); }
-}
-
-@keyframes cloudDrift {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(8px); }
-}
-
-/* Track */
-.track {
-  position: absolute;
-  bottom: 38px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  display: flex;
-  gap: 20px;
-  padding: 0 20px;
-}
-
-.track-line {
-  flex: 1;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    #333 0px, #333 20px,
-    transparent 20px, transparent 30px
-  );
-  opacity: 0.4;
-}
-
-.track-line.wet-track {
-  background: repeating-linear-gradient(
-    90deg,
-    #2a4a6a 0px, #2a4a6a 20px,
-    transparent 20px, transparent 30px
-  );
-  opacity: 0.6;
-}
-
-/* Car */
-.car-container {
+.garage-header {
   position: relative;
-  z-index: 2;
-  width: 340px;
-  margin: 0 auto;
-  transition: transform 0.3s;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 30px 0;
+  pointer-events: none;
 }
-
-.f1-car {
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
-  transition: filter 0.3s;
+.eyebrow,
+.setup-label,
+.simulation-status,
+.stage-caption,
+.setup-note {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
 }
-
-/* Vibrate when loading */
-.vibrate {
-  animation: vibrate 0.08s linear infinite;
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a1adbf;
 }
-
-@keyframes vibrate {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-1px, 0.5px); }
-  50% { transform: translate(1px, -0.5px); }
-  75% { transform: translate(-0.5px, -0.5px); }
-  100% { transform: translate(0.5px, 0.5px); }
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ff3838;
+  box-shadow: 0 0 12px #ff383880;
 }
-
-/* Tyre Spin */
-.tyre-spin {
-  animation: spin 0.7s linear infinite;
-  transform-origin: center;
+h3 {
+  margin: 5px 0 1px;
+  font-family: 'Saira', sans-serif;
+  font-weight: 600;
+  font-size: 29px;
+  line-height: 1.25;
+  letter-spacing: -0.045em;
 }
-
-@keyframes spin {
-  0% { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -47; }
+h3 > span {
+  color: #fa3939;
 }
-
-/* Speed Lines */
-.speed-lines {
+.driver-label {
+  margin: 6px 0 0;
+  color: #9ea9bd;
+  font-size: 11px;
+  letter-spacing: 0.015em;
+}
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+.simulation-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #91a3a9;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+.status-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #6ac9ab;
+}
+.running {
+  color: #ffbca3;
+}
+.running .status-dot {
+  background: #ff805b;
+  animation: pulse 1s ease-in-out infinite;
+}
+.view-switcher {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #ffffff12;
+  background: #080d1773;
+  border-radius: 9px;
+  pointer-events: auto;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color 0.18s,
+    background 0.18s,
+    border-color 0.18s;
+}
+.view-switcher button {
+  min-height: 30px;
+  padding: 5px 13px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #929eb3;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 500;
+}
+.view-switcher button:hover {
+  color: #fff;
+  background: #ffffff0a;
+}
+.view-switcher button.active {
+  color: #f4f6ff;
+  border-color: #ffffff14;
+  background: #ffffff12;
+  box-shadow: 0 2px 6px #0003;
+}
+button:focus-visible,
+.viewport:focus-visible {
+  outline: 2px solid #a8caff;
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.stage {
+  position: relative;
+  height: 350px;
+  margin-top: -48px;
+}
+.stage-wordmark {
   position: absolute;
   left: 0;
-  top: 0;
-  bottom: 0;
-  width: 120px;
-  z-index: 1;
+  right: 0;
+  top: 40px;
+  text-align: center;
+  font-family: 'Saira', sans-serif;
+  font-size: clamp(60px, 10vw, 142px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.025em;
+  color: #92a8c505;
+  user-select: none;
+  pointer-events: none;
 }
-
-.speed-line {
+.viewport {
   position: absolute;
-  left: -80px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-  animation: speedLine 0.5s linear infinite;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 0.6s;
+  border-radius: 12px;
 }
-
-@keyframes speedLine {
-  0% { left: -80px; width: 0; opacity: 0; }
-  50% { width: 80px; opacity: 1; }
-  100% { left: 60px; width: 0; opacity: 0; }
+.viewport.ready {
+  opacity: 1;
 }
-
-/* Win Gauge */
+.viewport:active {
+  cursor: grabbing;
+}
+.stage-caption {
+  position: absolute;
+  bottom: 24px;
+  right: 30px;
+  color: #7e8ca4;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  pointer-events: none;
+}
+.viewer-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 18px;
+  color: #aab6cc;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.loader-orbit {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ffffff18;
+  border-top-color: #ee4242;
+  border-radius: 50%;
+  animation: spin 1.1s linear infinite;
+}
 .gauge-container {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 130px;
-  z-index: 3;
-}
-
-.gauge {
-  width: 100%;
-}
-
-.gauge-fill {
-  transition: stroke-dasharray 1s ease;
-}
-
-/* Tyre Info */
-.tyre-info {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 14px;
-  position: relative;
+  left: 30px;
+  top: 112px;
+  width: 108px;
+  pointer-events: none;
   z-index: 2;
 }
-
-.tyre-badge {
-  font-family: 'JetBrains Mono', monospace;
-  padding: 5px 14px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  border: 1px solid rgba(255,255,255,0.08);
+.gauge {
+  width: 100%;
+  filter: drop-shadow(0 2px 5px #0008);
 }
-
-.downforce-badge {
+.gauge-fill {
+  transition: stroke-dasharray 0.8s ease;
+}
+.weather-layer,
+.speed-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.raindrop {
+  position: absolute;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(transparent, #afd7ff80);
+  animation: rain 0.85s linear infinite;
+  opacity: 0.4;
+}
+.rain .raindrop {
+  height: 28px;
+  animation-duration: 0.6s;
+}
+.speed-lines span {
+  position: absolute;
+  height: 1px;
+  width: 90px;
+  background: linear-gradient(90deg, transparent, #c9d9f250, transparent);
+  animation: speed 1s linear infinite;
+}
+.interaction-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 3;
+  margin-top: -8px;
+  padding: 0 30px 20px;
+}
+.interaction-hint {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #8895aa;
+  font-size: 10px;
+}
+.interaction-hint > svg {
+  width: 17px;
+  height: 17px;
+  opacity: 0.75;
+}
+.hint-divider {
+  margin: 0 8px;
+  color: #445067;
+}
+.camera-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.camera-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #ffffff0d;
+  border-radius: 6px;
+  background: #ffffff04;
+  color: #a6b2c6;
+}
+.camera-actions button:hover:not(:disabled) {
+  color: #fff;
+  border-color: #ffffff30;
+  background: #ffffff0c;
+}
+.camera-actions svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+.camera-actions .reset-button {
+  width: auto;
+  padding: 0 9px;
+  font-size: 10px;
+}
+.action-divider {
+  height: 14px;
+  width: 1px;
+  background: #ffffff18;
+  margin: 0 6px;
+}
+.setup-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 20px 30px;
+  border-top: 1px solid #ffffff0b;
+  background: #080c1459;
+}
+.setup-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 165px;
+  padding-right: 25px;
+}
+.setup-item + .setup-item {
+  border-left: 1px solid #ffffff10;
+  padding-left: 25px;
+}
+.setup-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.setup-label {
+  color: #7f8ca4;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+.setup-item strong {
   font-family: 'JetBrains Mono', monospace;
-  padding: 5px 14px;
-  border-radius: 999px;
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: .1em;
-  color: #868EA6;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  letter-spacing: 0.05em;
+  color: #cfd7e8;
+  white-space: nowrap;
 }
-
-.weather-badge {
-  font-family: 'JetBrains Mono', monospace;
-  padding: 5px 14px;
-  border-radius: 999px;
+.compound-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  border: 3px solid;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px #202735,
+    inset 0 0 0 3px #202735;
+}
+.compound-icon > span {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #6f7a90;
+  border-radius: 50%;
+}
+.downforce-icon {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  padding: 0 2px;
+}
+.downforce-icon i {
+  width: 4px;
+  height: 10px;
+  background: #becce1;
+  border-radius: 1px;
+  transition: opacity 0.25s;
+}
+.downforce-icon i:nth-child(2) {
+  height: 16px;
+}
+.downforce-icon i:nth-child(3) {
+  height: 22px;
+}
+.downforce-icon i.dim {
+  opacity: 0.16;
+}
+.weather-icon {
+  width: 25px;
+  height: 25px;
+  color: #e9c27b;
+}
+.rain .weather-icon,
+.damp .weather-icon {
+  color: #8cbeee;
+}
+.setup-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: #77859d;
+  font-size: 8px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.setup-note > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #506880;
+}
+.fallback {
+  position: absolute;
+  inset: 50px 0 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.fallback .f1-car {
+  display: block;
+  width: min(430px, 70%);
+  height: 205px;
+  filter: drop-shadow(0 8px 15px #0006);
+}
+.fallback-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 10px;
-  font-weight: 500;
-  letter-spacing: .1em;
-  color: #6cb4ff;
-  background: rgba(100, 150, 255, 0.1);
-  border: 1px solid rgba(100, 150, 255, 0.25);
+  color: #a0adc2;
 }
-
-/* Top-down tyre compound stripe pulse */
-.tyre-stripe {
-  animation: tyrePulse 0.7s linear infinite;
+.fallback-note button {
+  border: 1px solid #ffffff30;
+  border-radius: 5px;
+  background: #ffffff09;
+  padding: 6px 10px;
+  color: #e1e9fa;
+  font-size: 10px;
 }
-
-@keyframes tyrePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes rain {
+  from {
+    transform: translate(30px, -35px);
+  }
+  to {
+    transform: translate(-30px, 380px);
+  }
+}
+@keyframes speed {
+  from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  to {
+    transform: translateX(1200px);
+    opacity: 0;
+  }
+}
+@media (min-width: 1300px) {
+  .stage {
+    height: 380px;
+  }
+}
+@media (max-width: 850px) {
+  .setup-note {
+    display: none;
+  }
+  .setup-strip {
+    justify-content: space-between;
+  }
+  .setup-item {
+    min-width: 0;
+    padding-right: 18px;
+  }
+  .setup-item + .setup-item {
+    padding-left: 18px;
+  }
+  .gauge-container {
+    width: 85px;
+    left: 18px;
+  }
+}
+@media (max-width: 600px) {
+  .car-visual {
+    border-radius: 16px;
+  }
+  .garage-header {
+    padding: 20px 18px 0;
+    gap: 8px;
+  }
+  h3 {
+    font-size: 25px;
+  }
+  .eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.12em;
+  }
+  .driver-label {
+    font-size: 10px;
+    max-width: 150px;
+  }
+  .header-right {
+    gap: 14px;
+  }
+  .simulation-status {
+    font-size: 7px;
+  }
+  .view-switcher button {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+  .stage {
+    height: 295px;
+    margin-top: -15px;
+  }
+  .stage-wordmark {
+    top: 70px;
+    font-size: 64px;
+  }
+  .stage-caption {
+    right: 18px;
+    bottom: 18px;
+    font-size: 7px;
+  }
+  .gauge-container {
+    top: 28px;
+    width: 72px;
+  }
+  .interaction-bar {
+    padding: 0 18px 16px;
+  }
+  .interaction-hint {
+    font-size: 9px;
+    gap: 6px;
+  }
+  .zoom-hint,
+  .hint-divider {
+    display: none;
+  }
+  .camera-actions .reset-button {
+    padding: 0 7px;
+  }
+  .reset-button span {
+    display: none;
+  }
+  .setup-strip {
+    padding: 17px 18px;
+    align-items: stretch;
+  }
+  .setup-item {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 11px;
+    padding-right: 8px;
+  }
+  .setup-item + .setup-item {
+    padding-left: 13px;
+  }
+  .setup-label {
+    font-size: 6px;
+  }
+  .setup-item strong {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+  .compound-icon {
+    width: 23px;
+    height: 23px;
+  }
+  .weather-icon {
+    width: 23px;
+    height: 23px;
+  }
+  .fallback {
+    top: 0;
+  }
+  .fallback-note {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+  .weather-layer,
+  .speed-lines {
+    display: none;
+  }
 }
