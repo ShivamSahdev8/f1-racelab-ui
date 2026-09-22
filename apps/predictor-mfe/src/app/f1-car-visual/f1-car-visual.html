@@ -1,64 +1,155 @@
-<div class="car-visual" [class.loading]="isLoading" [class.rain]="weather === 'WET'" [class.damp]="weather === 'DAMP'">
-
-  <!-- Weather Effects -->
-  <div class="weather-layer">
-    <ng-container *ngIf="weather === 'WET' || weather === 'DAMP'">
-      <div class="raindrop" *ngFor="let r of [1,2,3,4,5,6,7,8,9,10,11,12]"
-        [style.left.%]="r * 8"
-        [style.animationDelay.s]="r * 0.15">
+<section
+  class="car-visual"
+  aria-label="Interactive Formula 1 car configuration"
+  [class.loading]="isLoading"
+  [class.rain]="weather === 'WET'"
+  [class.damp]="weather === 'DAMP'"
+  [style.--team-color]="teamColor"
+  [style.--tyre-color]="tyreColor"
+>
+  <header class="garage-header">
+    <div>
+      <div class="eyebrow">
+        <span class="live-dot"></span> LIVE CONFIGURATION
       </div>
-    </ng-container>
-    <div class="sun" *ngIf="weather === 'DRY'">☀️</div>
-    <div class="cloud" *ngIf="weather === 'DAMP'">🌧️</div>
-  </div>
+      <h3>The garage<span>.</span></h3>
+      <p class="driver-label">{{ driver || 'Your next winning setup' }}</p>
+    </div>
+    <div class="header-right">
+      <span class="simulation-status" [class.running]="isLoading" role="status">
+        <span class="status-dot"></span>{{ isLoading ? 'SIMULATING' : 'SETUP
+        SYNCED' }}
+      </span>
+      <div class="view-switcher" role="group" aria-label="Camera view">
+        @for (view of views; track view.id) {
+        <button
+          type="button"
+          [class.active]="activeView === view.id"
+          [attr.aria-pressed]="activeView === view.id"
+          [disabled]="viewerState() !== 'ready'"
+          (click)="selectView(view.id)"
+        >
+          {{ view.label }}
+        </button>
+        }
+      </div>
+    </div>
+  </header>
 
-  <!-- Win Gauge -->
-  <div class="gauge-container" *ngIf="winChance > 0">
-    <svg viewBox="0 0 200 120" class="gauge">
-      <path d="M20,100 A80,80 0 0,1 180,100"
-        fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12" stroke-linecap="round"/>
-      <path d="M20,100 A80,80 0 0,1 180,100"
-        fill="none"
-        [attr.stroke]="winChance >= 60 ? '#00c800' : winChance >= 30 ? '#ffd700' : '#e10600'"
-        stroke-width="12" stroke-linecap="round"
-        [style.strokeDasharray]="(winChance / 100 * 251) + ' 251'"
-        class="gauge-fill"/>
-      <text x="100" y="88" text-anchor="middle" fill="#F4F6FF" font-size="30" font-weight="800" font-family="Saira, sans-serif">{{ winChance }}%</text>
-      <text x="100" y="108" text-anchor="middle" fill="#868EA6" font-size="10" font-family="JetBrains Mono, monospace" letter-spacing="2">WIN CHANCE</text>
-    </svg>
-  </div>
+  <div class="stage">
+    <div class="stage-wordmark" aria-hidden="true">RACELAB</div>
+    <div
+      #viewport
+      class="viewport"
+      [class.ready]="viewerState() === 'ready'"
+      [attr.tabindex]="viewerState() === 'ready' ? 0 : -1"
+      role="group"
+      aria-label="3D Formula 1 car. Drag to rotate, scroll or pinch to zoom. Use arrow keys to rotate, plus and minus to zoom, and Home to reset."
+      (keydown)="onViewerKeydown($event)"
+    ></div>
 
-  <!-- F1 Car SVG (TOP-DOWN VIEW) -->
-  <div class="car-container" [class.vibrate]="isLoading">
-    <svg viewBox="0 0 520 260" xmlns="http://www.w3.org/2000/svg" class="f1-car">
+    @if (viewerState() === 'loading') {
+    <div class="viewer-loading" role="status">
+      <span class="loader-orbit"></span><span>Preparing your car</span>
+    </div>
+    } @if (viewerState() === 'unavailable') {
+    <div class="fallback">
+      <svg
+        viewBox="0 0 520 260"
+        xmlns="http://www.w3.org/2000/svg"
+        class="f1-car"
+      >
+        <!-- Shadow -->
+        <ellipse cx="270" cy="232" rx="170" ry="10" fill="rgba(0,0,0,0.3)" />
 
-      <!-- Shadow -->
-      <ellipse cx="270" cy="232" rx="170" ry="10" fill="rgba(0,0,0,0.3)"/>
+        <!-- ===== FRONT WING (left) ===== -->
+        <g>
+          <rect
+            x="26"
+            y="86"
+            width="26"
+            height="88"
+            rx="4"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="20"
+            y="92"
+            width="38"
+            height="5"
+            rx="2"
+            fill="#000"
+            opacity="0.2"
+          />
+          <rect
+            x="20"
+            y="127"
+            width="38"
+            height="5"
+            rx="2"
+            fill="#000"
+            opacity="0.2"
+          />
+          <rect
+            x="20"
+            y="162"
+            width="38"
+            height="5"
+            rx="2"
+            fill="#000"
+            opacity="0.2"
+          />
+          <!-- endplates -->
+          <rect
+            x="18"
+            y="80"
+            width="7"
+            height="22"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="18"
+            y="158"
+            width="7"
+            height="22"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+        </g>
 
-      <!-- ===== FRONT WING (left) ===== -->
-      <g>
-        <rect x="26" y="86" width="26" height="88" rx="4" [attr.fill]="teamColor"/>
-        <rect x="20" y="92" width="38" height="5" rx="2" fill="#000" opacity="0.2"/>
-        <rect x="20" y="127" width="38" height="5" rx="2" fill="#000" opacity="0.2"/>
-        <rect x="20" y="162" width="38" height="5" rx="2" fill="#000" opacity="0.2"/>
-        <!-- endplates -->
-        <rect x="18" y="80" width="7" height="22" rx="2" [attr.fill]="teamColor"/>
-        <rect x="18" y="158" width="7" height="22" rx="2" [attr.fill]="teamColor"/>
-      </g>
+        <!-- Nose connector -->
+        <path d="M52,116 L150,110 L150,150 L52,144 Z" [attr.fill]="teamColor" />
 
-      <!-- Nose connector -->
-      <path d="M52,116 L150,110 L150,150 L52,144 Z" [attr.fill]="teamColor"/>
+        <!-- ===== FRONT TYRES ===== -->
+        <g>
+          <rect x="92" y="68" width="46" height="27" rx="7" fill="#141414" />
+          <rect x="92" y="165" width="46" height="27" rx="7" fill="#141414" />
+          <rect
+            x="96"
+            y="72"
+            width="38"
+            height="5"
+            rx="2"
+            [attr.fill]="tyreColor"
+            class="tyre-stripe"
+            [style.animationDuration]="tyreSpeed"
+          />
+          <rect
+            x="96"
+            y="183"
+            width="38"
+            height="5"
+            rx="2"
+            [attr.fill]="tyreColor"
+            class="tyre-stripe"
+            [style.animationDuration]="tyreSpeed"
+          />
+        </g>
 
-      <!-- ===== FRONT TYRES ===== -->
-      <g>
-        <rect x="92" y="68" width="46" height="27" rx="7" fill="#141414"/>
-        <rect x="92" y="165" width="46" height="27" rx="7" fill="#141414"/>
-        <rect x="96" y="72" width="38" height="5" rx="2" [attr.fill]="tyreColor" class="tyre-stripe" [style.animationDuration]="tyreSpeed"/>
-        <rect x="96" y="183" width="38" height="5" rx="2" [attr.fill]="tyreColor" class="tyre-stripe" [style.animationDuration]="tyreSpeed"/>
-      </g>
-
-      <!-- ===== MAIN BODY ===== -->
-      <path d="M120,112
+        <!-- ===== MAIN BODY ===== -->
+        <path
+          d="M120,112
                C150,104 185,96 220,92
                C250,89 275,92 288,102
                L300,112
@@ -69,63 +160,342 @@
                C275,168 250,171 220,168
                C185,164 150,156 120,148
                Z"
-            [attr.fill]="teamColor"/>
+          [attr.fill]="teamColor"
+        />
 
-      <!-- Rear spine to wing -->
-      <rect x="300" y="126" width="162" height="8" rx="3" [attr.fill]="teamColor"/>
+        <!-- Rear spine to wing -->
+        <rect
+          x="300"
+          y="126"
+          width="162"
+          height="8"
+          rx="3"
+          [attr.fill]="teamColor"
+        />
 
-      <!-- Sidepod shadow -->
-      <path d="M170,118 C200,110 240,108 270,114 L270,146 C240,152 200,150 170,142 Z" fill="#000" opacity="0.12"/>
+        <!-- Sidepod shadow -->
+        <path
+          d="M170,118 C200,110 240,108 270,114 L270,146 C240,152 200,150 170,142 Z"
+          fill="#000"
+          opacity="0.12"
+        />
 
-      <!-- ===== COCKPIT ===== -->
-      <ellipse cx="225" cy="130" rx="34" ry="20" fill="#0c0c0c"/>
-      <rect x="200" y="126" width="54" height="8" rx="4" fill="#444"/>
-      <!-- Helmet -->
-      <ellipse cx="232" cy="130" rx="13" ry="11" fill="#1f8fff"/>
-      <ellipse cx="237" cy="130" rx="6" ry="9" fill="#0c0c0c" opacity="0.5"/>
+        <!-- ===== COCKPIT ===== -->
+        <ellipse cx="225" cy="130" rx="34" ry="20" fill="#0c0c0c" />
+        <rect x="200" y="126" width="54" height="8" rx="4" fill="#444" />
+        <!-- Helmet -->
+        <ellipse cx="232" cy="130" rx="13" ry="11" fill="#1f8fff" />
+        <ellipse cx="237" cy="130" rx="6" ry="9" fill="#0c0c0c" opacity="0.5" />
 
-      <!-- ===== REAR TYRES ===== -->
-      <g>
-        <rect x="372" y="62" width="52" height="31" rx="8" fill="#141414"/>
-        <rect x="372" y="167" width="52" height="31" rx="8" fill="#141414"/>
-        <rect x="377" y="66" width="42" height="6" rx="2" [attr.fill]="tyreColor" class="tyre-stripe" [style.animationDuration]="tyreSpeed"/>
-        <rect x="377" y="188" width="42" height="6" rx="2" [attr.fill]="tyreColor" class="tyre-stripe" [style.animationDuration]="tyreSpeed"/>
-      </g>
+        <!-- ===== REAR TYRES ===== -->
+        <g>
+          <rect x="372" y="62" width="52" height="31" rx="8" fill="#141414" />
+          <rect x="372" y="167" width="52" height="31" rx="8" fill="#141414" />
+          <rect
+            x="377"
+            y="66"
+            width="42"
+            height="6"
+            rx="2"
+            [attr.fill]="tyreColor"
+            class="tyre-stripe"
+            [style.animationDuration]="tyreSpeed"
+          />
+          <rect
+            x="377"
+            y="188"
+            width="42"
+            height="6"
+            rx="2"
+            [attr.fill]="tyreColor"
+            class="tyre-stripe"
+            [style.animationDuration]="tyreSpeed"
+          />
+        </g>
 
-      <!-- ===== REAR WING (right) with comb endplates ===== -->
-      <g>
-        <rect x="460" y="74" width="22" height="112" rx="4" [attr.fill]="teamColor"/>
-        <rect x="482" y="78" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="92" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="106" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="120" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="134" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="148" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="162" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <rect x="482" y="176" width="26" height="8" rx="2" [attr.fill]="teamColor"/>
-        <!-- DRS light -->
-        <circle cx="471" cy="130" r="4" [attr.fill]="downforce === 'LOW' ? '#00c800' : '#222'"/>
-      </g>
+        <!-- ===== REAR WING (right) with comb endplates ===== -->
+        <g>
+          <rect
+            x="460"
+            y="74"
+            width="22"
+            height="112"
+            rx="4"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="78"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="92"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="106"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="120"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="134"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="148"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="162"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <rect
+            x="482"
+            y="176"
+            width="26"
+            height="8"
+            rx="2"
+            [attr.fill]="teamColor"
+          />
+          <!-- DRS light -->
+          <circle
+            cx="471"
+            cy="130"
+            r="4"
+            [attr.fill]="downforce === 'LOW' ? '#00c800' : '#222'"
+          />
+        </g>
 
-      <!-- Number -->
-      <text x="335" y="135" font-size="15" font-weight="800" fill="white" text-anchor="middle" font-family="Arial" opacity="0.85">F1</text>
-
-    </svg>
+        <!-- Number -->
+        <text
+          x="335"
+          y="135"
+          font-size="15"
+          font-weight="800"
+          fill="white"
+          text-anchor="middle"
+          font-family="Arial"
+          opacity="0.85"
+        >
+          F1
+        </text>
+      </svg>
+      <div class="fallback-note" role="status">
+        <span>3D view is unavailable. Your setup is still live.</span>
+        <button type="button" (click)="retryViewer()">Retry 3D</button>
+      </div>
+    </div>
+    } @if (weather !== 'DRY') {
+    <div class="weather-layer" aria-hidden="true">
+      @for (drop of rainDrops; track drop) {
+      <span
+        class="raindrop"
+        [style.left.%]="drop * 4.7"
+        [style.animationDelay.s]="drop * -0.17"
+      ></span>
+      }
+    </div>
+    } @if (isLoading) {
+    <div class="speed-lines" aria-hidden="true">
+      @for (line of [1,2,3,4,5,6]; track line) {
+      <span
+        [style.top.%]="20 + line * 10"
+        [style.animationDelay.s]="line * -0.12"
+      ></span>
+      }
+    </div>
+    } @if (winChance > 0) {
+    <div
+      class="gauge-container"
+      role="img"
+      [attr.aria-label]="winChance + '% win chance'"
+    >
+      <svg viewBox="0 0 200 125" class="gauge" aria-hidden="true">
+        <path
+          d="M20,100 A80,80 0 0,1 180,100"
+          fill="none"
+          stroke="rgba(255,255,255,.09)"
+          stroke-width="9"
+          stroke-linecap="round"
+        />
+        <path
+          d="M20,100 A80,80 0 0,1 180,100"
+          fill="none"
+          [attr.stroke]="winChance >= 60 ? '#46deb1' : winChance >= 30 ? '#ffd166' : '#ff514d'"
+          stroke-width="9"
+          stroke-linecap="round"
+          [style.strokeDasharray]="(winChance / 100 * 251) + ' 251'"
+          class="gauge-fill"
+        />
+        <text
+          x="100"
+          y="86"
+          text-anchor="middle"
+          fill="#f4f6ff"
+          font-size="34"
+          font-weight="700"
+          font-family="Saira, sans-serif"
+        >
+          {{ winChance }}%
+        </text>
+        <text
+          x="100"
+          y="112"
+          text-anchor="middle"
+          fill="#abb3c5"
+          font-size="10"
+          font-family="JetBrains Mono, monospace"
+          letter-spacing="2"
+        >
+          WIN CHANCE
+        </text>
+      </svg>
+    </div>
+    }
+    <span class="stage-caption" aria-hidden="true"
+      >{{ viewerState() === 'ready' ? '360° EXPLORER' : 'CAR PREVIEW' }}</span
+    >
   </div>
 
-  <!-- Speed Lines (when loading) -->
-  <div class="speed-lines" *ngIf="isLoading">
-    <div class="speed-line" *ngFor="let l of [1,2,3,4,5,6,7]"
-      [style.top.%]="15 + l * 10"
-      [style.animationDelay.s]="l * 0.08">
+  <div class="interaction-bar">
+    @if (viewerState() === 'ready') {
+    <p class="interaction-hint">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.4"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 12V9a2 2 0 0 1 4 0v3-7a2 2 0 0 1 4 0v7-5a2 2 0 0 1 4 0v5-2a2 2 0 0 1 4 0v5c0 4-2 7-6 7h-2c-3 0-4-2-6-4l-3-3a2 2 0 0 1 1-3Z"
+        />
+      </svg>
+      <span
+        >Drag to explore <span class="hint-divider">/</span>
+        <span class="zoom-hint">Scroll or pinch to zoom</span></span
+      >
+    </p>
+    } @else {
+    <p class="interaction-hint">Your strategy, reflected in every detail.</p>
+    }
+    <div class="camera-actions" role="group" aria-label="Camera controls">
+      <button
+        type="button"
+        aria-label="Zoom out"
+        title="Zoom out"
+        [disabled]="viewerState() !== 'ready'"
+        (click)="zoom(1.18)"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10h10" /></svg>
+      </button>
+      <button
+        type="button"
+        aria-label="Zoom in"
+        title="Zoom in"
+        [disabled]="viewerState() !== 'ready'"
+        (click)="zoom(0.85)"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M5 10h10M10 5v10" />
+        </svg>
+      </button>
+      <span class="action-divider"></span>
+      <button
+        type="button"
+        class="reset-button"
+        aria-label="Reset camera"
+        [disabled]="viewerState() !== 'ready'"
+        (click)="selectView('perspective')"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M4 7a6 6 0 1 1 0 6M4 3v4h4" /></svg
+        ><span>Reset view</span>
+      </button>
     </div>
   </div>
 
-  <!-- Tyre Info -->
-  <div class="tyre-info">
-    <span class="tyre-badge" [style.background]="tyreColor + '33'" [style.color]="tyreColor">{{ tyres }}</span>
-    <span class="downforce-badge">⚙️ {{ downforce }} DOWNFORCE</span>
-    <span class="weather-badge" *ngIf="weather !== 'DRY'">{{ weather === 'WET' ? '🌧️' : '🌦️' }} {{ weather }}</span>
-  </div>
-
-</div>
+  <footer class="setup-strip">
+    <div class="setup-item tyre-info">
+      <span
+        class="compound-icon"
+        [style.border-color]="tyreColor"
+        aria-hidden="true"
+        ><span></span
+      ></span>
+      <div>
+        <span class="setup-label">TYRE COMPOUND</span
+        ><strong class="tyre-badge">{{ tyres }}</strong>
+      </div>
+    </div>
+    <div class="setup-item">
+      <span class="downforce-icon" aria-hidden="true"
+        ><i></i><i [class.dim]="downforce === 'LOW'"></i
+        ><i [class.dim]="downforce !== 'HIGH'"></i
+      ></span>
+      <div>
+        <span class="setup-label">AERO SETUP</span
+        ><strong class="downforce-badge">{{ downforce }} DOWNFORCE</strong>
+      </div>
+    </div>
+    <div class="setup-item">
+      <svg
+        class="weather-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.4"
+        aria-hidden="true"
+      >
+        @if (weather === 'DRY') {
+        <g>
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"
+          />
+        </g>
+        } @else {
+        <g>
+          <path d="M6 16a4 4 0 1 1 0-8 6 6 0 0 1 12-1 4.5 4.5 0 0 1 0 9Z" />
+          <path d="m8 19-1 3m6-3-1 3m6-3-1 3" />
+        </g>
+        }
+      </svg>
+      <div>
+        <span class="setup-label">TRACK CONDITIONS</span
+        ><strong class="weather-badge">{{ weather }}</strong>
+      </div>
+    </div>
+    <span class="setup-note"><span></span> Updates with your strategy</span>
+  </footer>
+</section>
