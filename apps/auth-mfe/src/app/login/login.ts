@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { AuthStateService, EventBusService } from '@f1-racelab/shared-ui';
 import { BusEventType } from '@f1-racelab/shared-ui';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 type AuthStep = 'login' | 'new-password' | 'success';
 
@@ -30,7 +30,8 @@ export class Login {
     private authService: AuthService,
     private eventBus: EventBusService,
     private authState: AuthStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {
     this.checkExistingSession();
   }
@@ -39,21 +40,38 @@ export class Login {
     const user = await this.authService.getCurrentUser();
     if (user) {
       const attrs = await this.authService.getUserAttributes();
+      const email = attrs?.['email'] ?? user.username;
+      if (email.trim().toLowerCase() === 'guest@f1racelab.com') {
+        this.authState.clearUser();
+        this.step.set('login');
+        this.isLoading.set(true);
+        try {
+          await this.authService.logout();
+        } catch {
+          this.error.set('Please sign in with your own account to continue.');
+        } finally {
+          this.eventBus.emit(BusEventType.AUTH_LOGOUT, null);
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        }
+        return;
+      }
       this.authState.setUser({
-        email: user.username,
+        email,
         name: attrs?.['name'] ?? user.username,
         favouriteTeam: attrs?.['custom:favouriteTeam'] ?? ''
       });
       this.step.set('success');
-      this.eventBus.emit(BusEventType.AUTH_SUCCESS, user.username);
-      this.cdr.detectChanges();
+      this.eventBus.emit(BusEventType.AUTH_SUCCESS, email);
+      this.cdr.markForCheck();
+      await this.router.navigate(['/predictor']);
     }
   }
 
   async onLogin(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     try {
       const { isSignedIn, nextStep } = await this.authService.login(
@@ -70,7 +88,7 @@ export class Login {
         });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
-        window.location.href = '/';
+        await this.router.navigate(['/predictor']);
       } else if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
         this.step.set('new-password');
       }
@@ -79,14 +97,14 @@ export class Login {
       this.error.set(err.message || 'Login failed');
     } finally {
       this.isLoading.set(false);
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
   async onSetNewPassword(): Promise<void> {
     this.isLoading.set(true);
     this.error.set(null);
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     try {
       const { isSignedIn } = await this.authService.confirmNewPassword(
@@ -102,7 +120,7 @@ export class Login {
         });
         this.step.set('success');
         this.eventBus.emit(BusEventType.AUTH_SUCCESS, this.email);
-        window.location.href = '/';
+        await this.router.navigate(['/predictor']);
 
       }
 
@@ -110,7 +128,7 @@ export class Login {
       this.error.set(err.message || 'Failed to set new password');
     } finally {
       this.isLoading.set(false);
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -118,18 +136,15 @@ export class Login {
     await this.authService.logout();
     this.authState.clearUser();
     this.eventBus.emit(BusEventType.AUTH_LOGOUT, null);
-    window.location.reload(); 
     this.step.set('login');
     this.email = '';
     this.password = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
     
   }
 
-    async loginAsGuest(): Promise<void> {
-    this.email = 'guest@f1racelab.com';
-    this.password = 'GuestRaceLab2026@';
-    await this.onLogin();
+  async tryAsGuest(): Promise<void> {
+    await this.router.navigate(['/predictor']);
   }
 
   togglePassword(): void {

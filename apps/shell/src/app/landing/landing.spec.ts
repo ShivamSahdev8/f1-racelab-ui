@@ -1,21 +1,16 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { Landing } from './landing';
 
+jest.mock('gsap', () => ({ __esModule: true, default: { registerPlugin: jest.fn() } }));
+jest.mock('gsap/ScrollTrigger', () => ({ ScrollTrigger: {} }));
+
 describe('Landing', () => {
-  let component: Landing;
-  let fixture: ComponentFixture<Landing>;
+  it('opens prediction directly from the landing call to action', () => {
+    const router = { navigate: jest.fn().mockResolvedValue(true) };
+    const component = new Landing(router as unknown as Router);
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Landing],
-    }).compileComponents();
+    component.enterApp();
 
-    fixture = TestBed.createComponent(Landing);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(router.navigate).toHaveBeenCalledWith(['/predictor']);
   });
 });

@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable, OnDestroy, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { AuthStateService } from '@f1-racelab/shared-ui';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { Observable, catchError, defer, finalize, from, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 
 export interface PredictionRequest {
   driver: string;
@@ -58,19 +60,256 @@ export interface RaceOverview {
 }
 
 const API_URL = 'https://yo8jy0lpwl.execute-api.us-east-2.amazonaws.com/prod';
+const GUEST_TRIAL_KEY = 'f1racelab.prediction.guest-trial.v1';
+const GUEST_ID_KEY = 'f1racelab.prediction.guest-id.v1';
+const GUEST_RESULT_KEY = 'f1racelab.prediction.guest-result.v1';
+const CACHE_TTL_MS = 15 * 60 * 1000;
+
+export type PredictionAccessCode =
+  | 'SIGN_IN_REQUIRED'
+  | 'STORAGE_UNAVAILABLE'
+  | 'GUEST_LIMIT_REACHED'
+  | 'DAILY_LIMIT_REACHED'
+  | 'GLOBAL_LIMIT_REACHED'
+  | 'RATE_LIMITED';
+
+export class PredictionAccessError extends Error {
+  constructor(public readonly code: PredictionAccessCode, message: string) {
+    super(message);
+    this.name = 'PredictionAccessError';
+  }
+}
+
+interface SavedGuestPrediction {
+  request: PredictionRequest;
+  result: PredictionResult;
+}
+
+export interface GuestPredictionState {
+  loading: boolean;
+  request: PredictionRequest | null;
+  result: PredictionResult | null;
+  error: unknown | null;
+}
+
+interface CachedResponse {
+  value: PredictionResult | RaceOverview;
+  expiresAt: number;
+}
 
 @Injectable({ providedIn: 'root' })
-export class PredictionService {
+export class PredictionService implements OnDestroy {
+  private readonly trialUsed = signal(false);
+  readonly guestTrialUsed = this.trialUsed.asReadonly();
+  private readonly guestState = signal<GuestPredictionState>({
+    loading: false, request: null, result: null, error: null
+  });
+  readonly guestRequestState = this.guestState.asReadonly();
+  private pendingGuest: Observable<PredictionResult> | null = null;
+  private storageUnavailable = false;
+  private readonly cache = new Map<string, CachedResponse>();
+  private readonly pending = new Map<string, Observable<PredictionResult | RaceOverview>>();
+  private readonly onStorage = (event: StorageEvent) => {
+    if (event.key === GUEST_TRIAL_KEY || event.key === null) this.refreshTrial();
+  };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authState: AuthStateService) {
+    this.refreshTrial();
+    const saved = this.getGuestPrediction();
+    if (saved) this.guestState.set({ ...saved, loading: false, error: null });
+    if (typeof window !== 'undefined') window.addEventListener('storage', this.onStorage);
+  }
+
+  ngOnDestroy(): void {
+    if (typeof window !== 'undefined') window.removeEventListener('storage', this.onStorage);
+  }
+
+  isMember(): boolean {
+    const user = this.authState.getUser();
+    return this.authState.isLoggedIn() && !!user &&
+      user.email.toLowerCase() !== 'guest@f1racelab.com';
+  }
+
+  requiresSignIn(): boolean {
+    return !this.isMember() && this.guestTrialUsed();
+  }
+
+  getGuestPrediction(): SavedGuestPrediction | null {
+    try {
+      const raw = localStorage.getItem(GUEST_RESULT_KEY);
+      if (!raw) return null;
+      const saved = JSON.parse(raw) as SavedGuestPrediction;
+      const requestFields: (keyof PredictionRequest)[] = [
+        'driver', 'circuit', 'tyres', 'weather', 'downforce', 'strategy'
+      ];
+      const optimal = saved?.result?.optimalSetup;
+      // Local data may be stale or malformed. Never feed invalid values into the UI.
+      if (!saved?.request || !saved?.result ||
+          !requestFields.every(field => typeof saved.request[field] === 'string') ||
+          !['winChance', 'podiumChance', 'expectedPosition', 'expectedPoints'].every(
+            field => Number.isFinite((saved.result as unknown as Record<string, unknown>)[field])
+          ) || !optimal || !Number.isFinite(optimal.winChance) ||
+          ![optimal.tyres, optimal.strategy, optimal.downforce, optimal.explanation,
+            saved.result.insight, saved.result.riskFactor, saved.result.funFact
+          ].every(value => typeof value === 'string')) {
+        return null;
+      }
+      return saved;
+    } catch {
+      return null;
+    }
+  }
 
   getOverview(): Observable<RaceOverview> {
-    return this.http.post<RaceOverview>(`${API_URL}/predict`, {
-      type: 'overview'
+    return defer(() => {
+      if (!this.isMember()) {
+        return throwError(() => new PredictionAccessError(
+          'SIGN_IN_REQUIRED', 'Sign in to view the race overview. Your free prediction is available in the simulator.'
+        ));
+      }
+      return this.memberRequest<RaceOverview>('overview', { type: 'overview' });
     });
   }
 
   predict(request: PredictionRequest): Observable<PredictionResult> {
-    return this.http.post<PredictionResult>(`${API_URL}/predict`, request);
+    const setup = { ...request };
+    return defer(() => {
+      if (this.isMember()) {
+        const key = JSON.stringify([
+          setup.driver, setup.circuit, setup.tyres, setup.weather, setup.downforce, setup.strategy
+        ]);
+        return this.memberRequest<PredictionResult>(key, setup);
+      }
+      return this.guestRequest(setup);
+    }).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+  }
+
+  private guestRequest(setup: PredictionRequest): Observable<PredictionResult> {
+    if (this.pendingGuest) return this.pendingGuest;
+    const request$ = defer(() => from(this.claimGuestTrial())).pipe(
+      tap(() => this.guestState.set({ loading: true, request: setup, result: null, error: null })),
+      switchMap(guestId => this.http.post<PredictionResult>(`${API_URL}/predict`, { ...setup, guestId })),
+      tap(result => {
+        this.guestState.set({ loading: false, request: setup, result, error: null });
+        try {
+          localStorage.setItem(GUEST_RESULT_KEY, JSON.stringify({ request: setup, result }));
+        } catch {
+          // The attempt is already consumed. A result storage failure must not unlock another call.
+        }
+      }),
+      catchError(error => {
+        const failure = this.accessError(error);
+        this.guestState.update(state => ({ ...state, loading: false, error: failure }));
+        return throwError(() => failure);
+      }),
+      finalize(() => { this.pendingGuest = null; }),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+    this.pendingGuest = request$;
+    return request$;
+  }
+
+  private memberRequest<T extends PredictionResult | RaceOverview>(
+    requestKey: string, body: PredictionRequest | { type: 'overview' }
+  ): Observable<T> {
+    const key = `${this.authState.getUser()?.email}:${requestKey}`;
+    const cached = this.cache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return of(cached.value as T);
+    this.cache.delete(key);
+
+    const inFlight = this.pending.get(key);
+    if (inFlight) return inFlight as Observable<T>;
+
+    const request$ = defer(() => from(this.memberToken())).pipe(
+      switchMap(token => this.http.post<T>(`${API_URL}/predict`, body, {
+        headers: { Authorization: `Bearer ${token}` }
+      })),
+      tap(value => {
+        // Bound memory as users explore different setups.
+        if (this.cache.size >= 100) this.cache.delete(this.cache.keys().next().value!);
+        this.cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+      }),
+      catchError(error => throwError(() => this.accessError(error))),
+      finalize(() => this.pending.delete(key)),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+    this.pending.set(key, request$);
+    return request$;
+  }
+
+  private async memberToken(): Promise<string> {
+    try {
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString();
+      if (token) return token;
+    } catch {
+      // A local signed-in UI state is not sufficient authorization for a paid request.
+    }
+    throw new PredictionAccessError('SIGN_IN_REQUIRED', 'Your session has expired. Sign in again to make a prediction.');
+  }
+
+  private async claimGuestTrial(): Promise<string> {
+    // This is a browser UX limit. Only server-side quotas can enforce Bedrock spending.
+    if (typeof navigator !== 'undefined' && navigator.locks) {
+      return navigator.locks.request(GUEST_TRIAL_KEY, () => this.consumeGuestTrial());
+    }
+    return this.consumeGuestTrial();
+  }
+
+  private consumeGuestTrial(): string {
+    this.refreshTrial();
+    if (this.storageUnavailable) {
+      throw new PredictionAccessError('STORAGE_UNAVAILABLE', 'Enable browser storage or sign in to make a prediction.');
+    }
+    if (this.guestTrialUsed()) {
+      throw new PredictionAccessError('GUEST_LIMIT_REACHED', 'You have used your free prediction. Sign in to try another setup.');
+    }
+    try {
+      let guestId = localStorage.getItem(GUEST_ID_KEY);
+      if (!guestId) {
+        guestId = crypto.randomUUID();
+        localStorage.setItem(GUEST_ID_KEY, guestId);
+      }
+      // Persist before dispatch. An interrupted or failed response may still incur model cost.
+      localStorage.setItem(GUEST_TRIAL_KEY, '1');
+      if (localStorage.getItem(GUEST_TRIAL_KEY) !== '1') throw new Error('Storage write failed');
+      this.trialUsed.set(true);
+      return guestId;
+    } catch {
+      this.storageUnavailable = true;
+      this.trialUsed.set(true);
+      throw new PredictionAccessError('STORAGE_UNAVAILABLE', 'Enable browser storage or sign in to make a prediction.');
+    }
+  }
+
+  private refreshTrial(): void {
+    try {
+      const used = localStorage.getItem(GUEST_TRIAL_KEY) !== null;
+      this.trialUsed.set(used || this.storageUnavailable);
+    } catch {
+      this.storageUnavailable = true;
+      this.trialUsed.set(true);
+    }
+  }
+
+  private accessError(error: unknown): unknown {
+    if (!(error instanceof HttpErrorResponse)) return error;
+    const code = error.error?.code;
+    const messages: Partial<Record<PredictionAccessCode, string>> = {
+      GUEST_LIMIT_REACHED: 'You have used your free prediction. Sign in to try another setup.',
+      DAILY_LIMIT_REACHED: 'You have reached today’s prediction limit. Please try again tomorrow.',
+      GLOBAL_LIMIT_REACHED: 'Predictions are temporarily paused. Please try again later.',
+      RATE_LIMITED: 'Too many prediction requests. Please wait a moment before trying again.'
+    };
+    if (messages[code as PredictionAccessCode]) {
+      return new PredictionAccessError(code, messages[code as PredictionAccessCode]!);
+    }
+    if (error.status === 401) {
+      return new PredictionAccessError('SIGN_IN_REQUIRED', 'Sign in again to make a prediction.');
+    }
+    if (error.status === 429) {
+      return new PredictionAccessError('RATE_LIMITED', messages.RATE_LIMITED!);
+    }
+    return error;
   }
 }
