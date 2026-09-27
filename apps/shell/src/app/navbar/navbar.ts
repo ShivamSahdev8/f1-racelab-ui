@@ -72,7 +72,7 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
       if (user) {
         const attrs = await fetchUserAttributes();
         this.authState.setUser({
-          email: user.username,
+          email: attrs?.['email'] ?? user.username,
           name: attrs?.['name'] ?? user.username,
           favouriteTeam: attrs?.['custom:favouriteTeam'] ?? ''
         });
@@ -94,6 +94,7 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.authState.clearUser();
     this.showDropdown = false;
-    window.location.href = '/auth/login';
+    this.eventBus.emit(BusEventType.AUTH_LOGOUT, null);
+    await this.router.navigate(['/auth/login']);
   }
 }

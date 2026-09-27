@@ -1,14 +1,23 @@
-import { Component, ChangeDetectionStrategy, signal, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  signal,
+  ChangeDetectorRef,
+  DestroyRef,
+  inject,
+  effect,
+} from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { AuthStateService, AuthUser } from '@f1-racelab/shared-ui';
+import { Subject, takeUntil } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { AuthStateService } from '@f1-racelab/shared-ui';
 import {
   PredictionService,
   PredictionRequest,
   PredictionResult,
   RaceOverview,
-  Contender
+  PredictionAccessError,
 } from '@f1-racelab/f1-data-client';
 import { F1CarVisualComponent } from '../f1-car-visual/f1-car-visual';
 import { CircuitVisual } from '../circuit-visual/circuit-visual';
@@ -18,22 +27,31 @@ type ActiveView = 'overview' | 'simulator';
 @Component({
   selector: 'app-predictor-preview',
   standalone: true,
-  imports: [CommonModule, FormsModule, F1CarVisualComponent, CircuitVisual, DecimalPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    F1CarVisualComponent,
+    CircuitVisual,
+    DecimalPipe,
+    RouterLink,
+  ],
   templateUrl: './predictor-preview.html',
   styleUrl: './predictor-preview.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PredictorPreview {
-
-  isLoggedIn$: Observable<boolean>;
-  user$: Observable<AuthUser | null>;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly destroyed = new Subject<void>();
+  readonly isMember = signal(false);
+  readonly requiresSignIn;
+  predictionRequest: PredictionRequest | null = null;
 
   // Views
-  activeView: ActiveView = 'overview';
+  activeView: ActiveView = 'simulator';
 
   // Overview state
   overview = signal<RaceOverview | null>(null);
-  overviewLoading = signal(true);
+  overviewLoading = signal(false);
   overviewError = signal<string | null>(null);
 
   // Simulator state
@@ -49,22 +67,53 @@ export class PredictorPreview {
 
   // Options
   drivers = [
-    'Max Verstappen', 'Lando Norris', 'Charles Leclerc',
-    'George Russell', 'Carlos Sainz', 'Oscar Piastri',
-    'Lewis Hamilton', 'Fernando Alonso', 'Lance Stroll',
-    'Kimi Antonelli', 'Pierre Gasly', 'Esteban Ocon',
-    'Alexander Albon', 'Nico Hulkenberg', 'Valtteri Bottas',
-    'Sergio Perez', 'Oliver Bearman', 'Franco Colapinto',
-    'Liam Lawson', 'Isack Hadjar'
+    'Max Verstappen',
+    'Lando Norris',
+    'Charles Leclerc',
+    'George Russell',
+    'Carlos Sainz',
+    'Oscar Piastri',
+    'Lewis Hamilton',
+    'Fernando Alonso',
+    'Lance Stroll',
+    'Kimi Antonelli',
+    'Pierre Gasly',
+    'Esteban Ocon',
+    'Alexander Albon',
+    'Nico Hulkenberg',
+    'Valtteri Bottas',
+    'Sergio Perez',
+    'Oliver Bearman',
+    'Franco Colapinto',
+    'Liam Lawson',
+    'Isack Hadjar',
   ];
 
   circuits = [
-    'Bahrain', 'Saudi Arabia', 'Australia', 'Japan',
-    'China', 'Miami', 'Emilia Romagna', 'Monaco',
-    'Canada', 'Barcelona', 'Austria', 'Great Britain',
-    'Hungary', 'Belgium', 'Netherlands', 'Italy',
-    'Azerbaijan', 'Singapore', 'United States', 'Mexico',
-    'Brazil', 'Las Vegas', 'Qatar', 'Abu Dhabi'
+    'Bahrain',
+    'Saudi Arabia',
+    'Australia',
+    'Japan',
+    'China',
+    'Miami',
+    'Emilia Romagna',
+    'Monaco',
+    'Canada',
+    'Barcelona',
+    'Austria',
+    'Great Britain',
+    'Hungary',
+    'Belgium',
+    'Netherlands',
+    'Italy',
+    'Azerbaijan',
+    'Singapore',
+    'United States',
+    'Mexico',
+    'Brazil',
+    'Las Vegas',
+    'Qatar',
+    'Abu Dhabi',
   ];
 
   tyreOptions = ['SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET'];
@@ -72,58 +121,95 @@ export class PredictorPreview {
   downforceOptions = ['LOW', 'MEDIUM', 'HIGH'];
   strategyOptions = ['1-STOP', '2-STOP', '3-STOP'];
 
-  // Guest preview data
-  previewPredictions = [
-    { position: 1, driver: 'Max Verstappen', team: 'Red Bull', odds: '2.5', color: '#4781D7' },
-    { position: 2, driver: 'Charles Leclerc', team: 'Ferrari', odds: '3.0', color: '#ED1131' },
-    { position: 3, driver: 'Lando Norris', team: 'McLaren', odds: '4.5', color: '#F47600' },
-    { position: 4, driver: 'George Russell', team: 'Mercedes', odds: '6.0', color: '#00D7B6' },
-    { position: 5, driver: 'Oscar Piastri', team: 'McLaren', odds: '7.5', color: '#F47600' },
-  ];
-
-  communityStats = { totalPredictions: 12450, accuracy: 34, topPredictor: 'RaceFan2026' };
-  upcomingRace = { name: 'Monaco Grand Prix', circuit: 'Circuit de Monaco', date: 'May 25, 2026', round: 7, flag: '🇲🇨' };
-
   private teamColors: Record<string, string> = {
-    'Red Bull Racing': '#4781D7', 'Red Bull': '#4781D7',
-    'McLaren': '#F47600', 'Ferrari': '#ED1131',
-    'Mercedes': '#00D7B6', 'Aston Martin': '#229971',
-    'Alpine': '#00A1E8', 'Williams': '#1868DB',
-    'Racing Bulls': '#6C98FF', 'Haas F1 Team': '#9C9FA2',
-    'Audi': '#F50537', 'Cadillac': '#909090',
+    'Red Bull Racing': '#4781D7',
+    'Red Bull': '#4781D7',
+    McLaren: '#F47600',
+    Ferrari: '#ED1131',
+    Mercedes: '#00D7B6',
+    'Aston Martin': '#229971',
+    Alpine: '#00A1E8',
+    Williams: '#1868DB',
+    'Racing Bulls': '#6C98FF',
+    'Haas F1 Team': '#9C9FA2',
+    Audi: '#F50537',
+    Cadillac: '#909090',
   };
 
   constructor(
     private authState: AuthStateService,
     private predictionService: PredictionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
-    this.isLoggedIn$ = this.authState.isLoggedIn$;
-    this.user$ = this.authState.user$;
-    this.loadOverview();
+    this.destroyRef.onDestroy(() => {
+      this.destroyed.next();
+      this.destroyed.complete();
+    });
+    this.authState.isLoggedIn$.pipe(takeUntil(this.destroyed)).subscribe(() => {
+      this.isMember.set(this.predictionService.isMember());
+    });
+    this.requiresSignIn = () =>
+      !this.isMember() && this.predictionService.requiresSignIn();
+    const saved = this.predictionService.getGuestPrediction();
+    if (saved) {
+      this.selectedDriver = saved.request.driver;
+      this.selectedCircuit = saved.request.circuit;
+      this.selectedTyres = saved.request.tyres;
+      this.selectedWeather = saved.request.weather;
+      this.selectedDownforce = saved.request.downforce;
+      this.selectedStrategy = saved.request.strategy;
+      this.predictionRequest = saved.request;
+      this.prediction.set(saved.result);
+    }
+    // Reattach to the original guest request if the user leaves and returns.
+    effect(() => {
+      const guest = this.predictionService.guestRequestState();
+      if (this.isMember() || !guest.request) return;
+      this.selectedDriver = guest.request.driver;
+      this.selectedCircuit = guest.request.circuit;
+      this.selectedTyres = guest.request.tyres;
+      this.selectedWeather = guest.request.weather;
+      this.selectedDownforce = guest.request.downforce;
+      this.selectedStrategy = guest.request.strategy;
+      this.predictionRequest = guest.request;
+      this.isLoading.set(guest.loading);
+      this.prediction.set(guest.result);
+      this.error.set(guest.error ? this.predictionError(
+        guest.error, 'Unable to complete this prediction. Sign in to continue.'
+      ) : null);
+    });
   }
 
   loadOverview(): void {
+    if (!this.isMember() || this.overviewLoading()) return;
     this.overviewLoading.set(true);
     this.overviewError.set(null);
-    //this.cdr.detectChanges();
 
-    this.predictionService.getOverview().subscribe({
-      next: (data) => {
-        this.overview.set(data);
-        this.overviewLoading.set(false);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.overviewError.set('Failed to load race overview');
-        this.overviewLoading.set(false);
-        this.cdr.detectChanges();
-      }
-    });
+    this.predictionService
+      .getOverview()
+      .pipe(takeUntil(this.destroyed))
+      .subscribe({
+        next: (data) => {
+          this.overview.set(data);
+          this.overviewLoading.set(false);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.overviewError.set(
+            this.predictionError(
+              err,
+              'Unable to load the race overview. Please try again later.',
+            ),
+          );
+          this.overviewLoading.set(false);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   setView(view: ActiveView): void {
     this.activeView = view;
+    this.cdr.markForCheck();
   }
 
   getTeamColor(team: string): string {
@@ -132,19 +218,26 @@ export class PredictorPreview {
 
   getFormColor(form: string): string {
     const colors: Record<string, string> = {
-      'HOT': '#e10600', 'GOOD': '#00c800', 'AVERAGE': '#ffd700', 'COLD': '#4781D7'
+      HOT: '#e10600',
+      GOOD: '#00c800',
+      AVERAGE: '#ffd700',
+      COLD: '#4781D7',
     };
     return colors[form] || '#888';
   }
 
   getFormEmoji(form: string): string {
     const emojis: Record<string, string> = {
-      'HOT': '🔥', 'GOOD': '✅', 'AVERAGE': '➡️', 'COLD': '🧊'
+      HOT: '🔥',
+      GOOD: '✅',
+      AVERAGE: '➡️',
+      COLD: '🧊',
     };
     return emojis[form] || '➡️';
   }
 
-  async onPredict(): Promise<void> {
+  onPredict(): void {
+    if (this.isLoading() || this.requiresSignIn()) return;
     if (!this.selectedDriver || !this.selectedCircuit) {
       this.error.set('Please select a driver and circuit');
       return;
@@ -155,25 +248,39 @@ export class PredictorPreview {
     this.prediction.set(null);
     this.cdr.detectChanges();
 
-    this.predictionService.predict({
+    const request: PredictionRequest = {
       driver: this.selectedDriver,
       circuit: this.selectedCircuit,
       tyres: this.selectedTyres,
       weather: this.selectedWeather,
       downforce: this.selectedDownforce,
-      strategy: this.selectedStrategy
-    }).subscribe({
-      next: (result) => {
-        this.prediction.set(result);
-        this.isLoading.set(false);
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.error.set('Failed to get prediction');
-        this.isLoading.set(false);
-        this.cdr.detectChanges();
-      }
-    });
+      strategy: this.selectedStrategy,
+    };
+    this.predictionService
+      .predict(request)
+      .pipe(takeUntil(this.destroyed))
+      .subscribe({
+        next: (result) => {
+          this.predictionRequest = request;
+          this.prediction.set(result);
+          this.isLoading.set(false);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error.set(
+            this.predictionError(
+              err,
+              'Unable to complete this prediction. Sign in to continue if your guest trial has been used.',
+            ),
+          );
+          this.isLoading.set(false);
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  private predictionError(error: unknown, fallback: string): string {
+    return error instanceof PredictionAccessError ? error.message : fallback;
   }
 
   getRiskColor(risk: string): string {

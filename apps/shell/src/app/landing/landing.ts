@@ -38,8 +38,8 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     {
       pos: 'P2 · SIMULATOR',
       title: 'Strategy what-if',
-      desc: 'Change tyre compound, weather, downforce and strategy — watch the predicted win chance update in real time.',
-      meta: [{ label: 'INPUTS', val: '5' }, { label: 'OUTPUT', val: 'live' }],
+      desc: 'Choose tyre compound, weather, downforce and strategy, then press Predict to get the win chance for your setup.',
+      meta: [{ label: 'INPUTS', val: '5' }, { label: 'OUTPUT', val: 'on demand' }],
       accent: '#A742FF'
     },
     {
@@ -81,7 +81,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   }
 
   enterApp(): void {
-    this.router.navigate(['/live']);
+    this.router.navigate(['/predictor']);
   }
 
   // ── Start lights ──────────────────────────────────────
