@@ -74,5 +74,14 @@ jobs:
       - name: Deploy news-mfe to S3
         run: aws s3 sync dist/apps/news-mfe/ s3://f1-racelab-ui/news-mfe/ --delete
 
+      - name: Keep entry files fresh in browsers
+        run: |
+          cache_control='no-cache, max-age=0, must-revalidate'
+          aws s3 cp dist/apps/shell/index.html s3://f1-racelab-ui/shell/index.html --cache-control "$cache_control" --content-type text/html
+          aws s3 cp dist/apps/shell/assets/module-federation.manifest.json s3://f1-racelab-ui/shell/assets/module-federation.manifest.json --cache-control "$cache_control" --content-type application/json
+          for app in auth-mfe live-mfe stats-mfe fantasy-mfe predictor-mfe news-mfe; do
+            aws s3 cp "dist/apps/$app/remoteEntry.js" "s3://f1-racelab-ui/$app/remoteEntry.js" --cache-control "$cache_control" --content-type application/javascript
+          done
+
       - name: Invalidate CloudFront cache
         run: aws cloudfront create-invalidation --distribution-id E22VT45TW347DQ --paths "/*"

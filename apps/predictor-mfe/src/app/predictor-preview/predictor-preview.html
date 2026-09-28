@@ -12,15 +12,16 @@
       <div class="header-left">
         <div class="crystal-ring" aria-hidden="true">🔮</div>
         <div class="header-titles">
-          <div class="eyebrow">CLAUDE AI · REAL F1 DATA</div>
+          <div class="eyebrow">BROWSER SIMULATOR · CURRENT STANDINGS</div>
           <h1 class="page-title">RACE PREDICTOR</h1>
         </div>
       </div>
     </header>
 
     <p class="page-intro">
-      Build your race setup, explore the car, and get an AI prediction.
+      Build your race setup, explore the car, and compare an illustrative estimate.
     </p>
+    <p class="request-hint">Estimates use championship standings and simple strategy rules. Percentages are illustrative, not calibrated race odds.</p>
 
     <div class="trial-banner" *ngIf="!isMember()" aria-live="polite">
       <div>
@@ -98,7 +99,7 @@
           <div class="f1-tire" aria-hidden="true">
             <div class="tire-hub"></div>
           </div>
-          <p class="loading-label">AI IS ANALYZING THE UPCOMING RACE</p>
+          <p class="loading-label">LOADING CURRENT RACE DATA</p>
           <small class="loading-sub"
             >Fetching 2026 standings + circuit history</small
           >
@@ -124,13 +125,13 @@
             <div class="race-stats">
               <div class="race-stat">
                 <span class="stat-val"
-                  >{{ ov.prediction.safetyCarChance }}<small>%</small></span
+                  >{{ ov.prediction.safetyCarChance ?? '—' }}<small *ngIf="ov.prediction.safetyCarChance !== null">%</small></span
                 >
                 <span class="stat-lbl">SAFETY CAR</span>
               </div>
               <div class="race-stat">
                 <span class="stat-val"
-                  >{{ ov.prediction.rainChance }}<small>%</small></span
+                  >{{ ov.prediction.rainChance ?? '—' }}<small *ngIf="ov.prediction.rainChance !== null">%</small></span
                 >
                 <span class="stat-lbl">RAIN</span>
               </div>
@@ -377,8 +378,7 @@
             (click)="onPredict()"
             [disabled]="isLoading() || !selectedDriver || !selectedCircuit"
           >
-            {{ isLoading() ? '🤖 ANALYZING…' : isMember() ? '🔮 GET AI
-            PREDICTION' : '🔮 TRY MY FREE PREDICTION' }}
+            {{ isLoading() ? '🏁 CALCULATING…' : isMember() ? '🔮 GET RACE ESTIMATE' : '🔮 TRY MY FREE PREDICTION' }}
           </button>
 
           <ng-template #signInToPredict>
@@ -387,8 +387,7 @@
             >
           </ng-template>
           <p class="request-hint">
-            Changing your setup is free. A prediction runs only when you request
-            one.
+            All estimates are free and run in your browser. Standings are loaded when you request one.
           </p>
 
           <div class="form-error" role="alert" *ngIf="error()">
@@ -413,14 +412,14 @@
             <div class="f1-tire" aria-hidden="true">
               <div class="tire-hub"></div>
             </div>
-            <p class="loading-label">AI IS ANALYZING RACE DATA</p>
+            <p class="loading-label">LOADING STANDINGS</p>
           </div>
 
           <!-- Empty -->
           <div class="empty-state" *ngIf="!isLoading() && !prediction()">
             <div class="empty-icon">🏎️</div>
             <h3>Select a driver and circuit</h3>
-            <p>Configure your race setup and let AI predict the outcome</p>
+            <p>Configure your race setup to explore an illustrative result</p>
           </div>
 
           <!-- Results -->
@@ -485,7 +484,7 @@
             </div>
 
             <div class="insight-card">
-              <h4>🤖 AI ANALYSIS</h4>
+              <h4>🏎️ STRATEGY ANALYSIS</h4>
               <p>{{ p.insight }}</p>
             </div>
 

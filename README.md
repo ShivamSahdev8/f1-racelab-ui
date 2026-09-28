@@ -1,6 +1,6 @@
 # 🏎️ F1 RaceLab UI
 
-> An AI-powered Formula 1 fan application built with a modern **micro-frontend architecture** on Angular 21 and deployed on AWS.
+> A Formula 1 fan application built with a modern **micro-frontend architecture** on Angular 21 and deployed on AWS.
 
 [![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)](https://angular.dev)
 [![Nx](https://img.shields.io/badge/Nx-Monorepo-143055?logo=nx&logoColor=white)](https://nx.dev)
@@ -10,7 +10,7 @@
 
 **🔗 Live demo:** https://d7echn6hj4ca9.cloudfront.net/shell/index.html
 
-**🧠 Backend (AI + infrastructure):** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
+**🧠 Backend infrastructure:** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
 
 > **🚀 Try it instantly — no signup needed**
 > Open **Prediction** (the first navigation tab) or choose **"Try a Free Prediction"** on the landing page. Guests can submit one prediction, then sign in to continue. A completed guest result is saved in that browser.
@@ -19,7 +19,7 @@
 
 ## Overview
 
-F1 RaceLab is a Formula 1 companion app where fans can follow live timing, browse championship standings, read the latest news, and — the centerpiece — get **AI-generated race predictions** with an interactive strategy simulator.
+F1 RaceLab is a Formula 1 companion app where fans can follow live timing, browse championship standings, read the latest news, and explore **illustrative race estimates** with an interactive strategy simulator.
 
 The project is intentionally built as a set of **independently deployable micro-frontends (MFEs)** rather than a single monolithic SPA, to demonstrate how large frontend systems are structured and shipped in production.
 
@@ -38,13 +38,13 @@ A **shell** host application loads six remote MFEs at runtime through Webpack Mo
    ┌────────────┼─────────────┬─────────────┬───────────────┐
    ▼            ▼             ▼             ▼               ▼
 auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
-(Cognito)  (timing)    (standings)    (RSS feed)   (previews + AI predictor)
+(Cognito)  (timing)    (standings)    (RSS feed)   (browser simulator)
 
            shared libraries
    ┌──────────────────────────────────────────────┐
    │  shared-models  · TypeScript interfaces        │
    │  shared-ui      · EventBus, AuthState, config  │
-   │  f1-data-client · OpenF1 / Ergast / AI client  │
+   │  f1-data-client · OpenF1 / Ergast / estimates │
    └──────────────────────────────────────────────┘
 ```
 
@@ -57,7 +57,7 @@ auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
 | `live-mfe` | 4202 | Live timing board — positions, tyres, gaps |
 | `stats-mfe` | 4203 | Driver & constructor championship standings |
 | `fantasy-mfe` | 4204 | Fantasy league (guest preview + member view) |
-| `predictor-mfe` | 4205 | AI race predictor + strategy simulator |
+| `predictor-mfe` | 4205 | Browser race estimator + strategy simulator |
 | `news-mfe` | 4206 | Latest F1 news feed |
 
 ### Shared libraries
@@ -66,7 +66,7 @@ auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
 |---------|---------|
 | `@f1-racelab/shared-models` | Pure TypeScript domain interfaces (Driver, Race, Standing, etc.) |
 | `@f1-racelab/shared-ui` | Cross-MFE `EventBusService`, `AuthStateService`, Cognito config |
-| `@f1-racelab/f1-data-client` | Data access for OpenF1, Ergast/Jolpica, news, and the prediction API |
+| `@f1-racelab/f1-data-client` | Data access for OpenF1, Ergast/Jolpica, news, and local predictions |
 
 ---
 
@@ -85,7 +85,7 @@ auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
 ## Key Features
 
 - 🧩 **True micro-frontend setup** — six remotes loaded at runtime, each independently buildable and deployable
-- 🔮 **AI race predictor** — single-driver predictions and a "what-if" simulator where you choose tyre, weather, downforce, and strategy before explicitly requesting a prediction (powered by the backend Bedrock service)
+- 🔮 **Race estimator** — illustrative estimates based on current standings and tyre, weather, downforce, and strategy inputs; computation runs in the browser
 - 🏁 **Race overview** — auto-generated top contenders for the upcoming Grand Prix
 - 📊 **Live timing & standings** — real F1 data
 - 🔐 **Full auth flow** — signup with favourite-team selection, email verification, session restore
@@ -93,17 +93,15 @@ auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
 
 ---
 
-## Prediction access and request costs
+## Prediction access and running costs
 
 - Prediction is the main app entry point. The strategy simulator and 3D car are available before sign-in; opening the page, changing settings, and switching tabs do not generate predictions.
-- Guests get one request attempt per browser. The attempt is recorded in local storage **before** the request; a failed or interrupted response does not unlock another request because the server may already have invoked the model. A completed result and its setup remain available after reload.
+- Guests get one successful estimate per browser. A standings failure leaves the trial available. The completed result and its setup remain available after reload.
 - After the trial, visitors can keep exploring the car and must sign in to request another prediction. The old shared guest-account login has been removed.
-- Race overviews require sign-in and an explicit **Generate race overview** action. Identical member requests and overviews share in-flight requests and reuse results for 15 minutes within the app session. Signed-in requests include a Cognito ID token.
-- Web Locks coordinate guest trial claims across tabs where supported. Storage failures require sign-in. The browser allowance is a UX control: clearing storage, using a different browser, or calling the endpoint directly can bypass it.
+- Race overviews require sign-in and an explicit **Generate race overview** action. Identical member estimates share work and reuse results for 15 minutes within the app session.
+- Web Locks coordinate guest trial claims across tabs where supported. Storage failures require sign-in. The browser allowance is a UX control; clearing storage or using a different browser can bypass it.
 
-The matching `f1-racelab-api` changes enforce access server-side: one trial per guest ID with a separate 3-attempt/IP/day abuse limit, verified Cognito member identity, 5 requests per member per UTC day, and 100 new model calls per UTC day overall. Cached setups and overviews avoid repeat inference; conditional locks prevent simultaneous generation, and quota-store failures block inference. The old shared guest account is rejected by the API. Failed or uncertain inference attempts retain their allowance.
-
-Deploy the backend and UI changes together. The browser counter is only a UX control; server-side quotas protect Bedrock usage even when browser storage is cleared. The global limit caps model attempts, not all AWS charges. API Gateway throttling provides another layer but is [best effort](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-throttling.html).
+Prediction and overview calculations no longer call Amazon Bedrock, Lambda, API Gateway, or DynamoDB. They fetch standings and calendar data directly from Jolpica, then calculate estimates in the browser. The numbers are illustrative and are not calibrated probabilities. The deployed backend has its Bedrock limit set to zero. Existing S3, CloudFront, Cognito, and other AWS resources can still incur charges; this change does not guarantee a zero AWS bill.
 
 ## Getting Started
 
@@ -194,7 +192,7 @@ f1-racelab-ui/
 
 - F1 data from [OpenF1](https://openf1.org) and [Ergast / Jolpica](https://api.jolpi.ca)
 - Circuit layouts from open-source SVG collections
-- AI predictions powered by Amazon Bedrock (Claude)
+- Browser-based estimates use current championship standings from Jolpica
 
 ---
 

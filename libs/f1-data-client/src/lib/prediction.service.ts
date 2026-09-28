@@ -1,8 +1,9 @@
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthStateService } from '@f1-racelab/shared-ui';
-import { fetchAuthSession } from 'aws-amplify/auth';
-import { Observable, catchError, defer, finalize, from, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { DriverStanding } from '@f1-racelab/shared-models';
+import { ErgastService } from './ergast.service';
+import { estimateOverview, estimatePrediction } from './local-prediction';
+import { Observable, catchError, combineLatest, defer, finalize, from, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 
 export interface PredictionRequest {
   driver: string;
@@ -51,18 +52,16 @@ export interface RaceOverview {
   race: any;
   prediction: {
     contenders: Contender[];
-    safetyCarChance: number;
-    rainChance: number;
+    safetyCarChance: number | null;
+    rainChance: number | null;
     darkHorse: DarkHorse;
     keyBattle: string;
     circuitInsight: string;
   };
 }
 
-const API_URL = 'https://yo8jy0lpwl.execute-api.us-east-2.amazonaws.com/prod';
-const GUEST_TRIAL_KEY = 'f1racelab.prediction.guest-trial.v1';
-const GUEST_ID_KEY = 'f1racelab.prediction.guest-id.v1';
-const GUEST_RESULT_KEY = 'f1racelab.prediction.guest-result.v1';
+const GUEST_TRIAL_KEY = 'f1racelab.prediction.guest-trial.v2';
+const GUEST_RESULT_KEY = 'f1racelab.prediction.guest-result.v2';
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
 export type PredictionAccessCode =
@@ -71,7 +70,8 @@ export type PredictionAccessCode =
   | 'GUEST_LIMIT_REACHED'
   | 'DAILY_LIMIT_REACHED'
   | 'GLOBAL_LIMIT_REACHED'
-  | 'RATE_LIMITED';
+  | 'RATE_LIMITED'
+  | 'DATA_UNAVAILABLE';
 
 export class PredictionAccessError extends Error {
   constructor(public readonly code: PredictionAccessCode, message: string) {
@@ -109,11 +109,13 @@ export class PredictionService implements OnDestroy {
   private storageUnavailable = false;
   private readonly cache = new Map<string, CachedResponse>();
   private readonly pending = new Map<string, Observable<PredictionResult | RaceOverview>>();
+  private standingsCache: Observable<DriverStanding[]> | null = null;
+  private standingsExpiresAt = 0;
   private readonly onStorage = (event: StorageEvent) => {
     if (event.key === GUEST_TRIAL_KEY || event.key === null) this.refreshTrial();
   };
 
-  constructor(private http: HttpClient, private authState: AuthStateService) {
+  constructor(private ergast: ErgastService, private authState: AuthStateService) {
     this.refreshTrial();
     const saved = this.getGuestPrediction();
     if (saved) this.guestState.set({ ...saved, loading: false, error: null });
@@ -167,7 +169,12 @@ export class PredictionService implements OnDestroy {
           'SIGN_IN_REQUIRED', 'Sign in to view the race overview. Your free prediction is available in the simulator.'
         ));
       }
-      return this.memberRequest<RaceOverview>('overview', { type: 'overview' });
+      return this.memberRequest<RaceOverview>('overview', () =>
+        combineLatest([
+          this.ergast.getRaceCalendar('current'),
+          this.getStandings(),
+        ]).pipe(map(([races, standings]) => estimateOverview(races, standings)))
+      );
     });
   }
 
@@ -178,7 +185,9 @@ export class PredictionService implements OnDestroy {
         const key = JSON.stringify([
           setup.driver, setup.circuit, setup.tyres, setup.weather, setup.downforce, setup.strategy
         ]);
-        return this.memberRequest<PredictionResult>(key, setup);
+        return this.memberRequest<PredictionResult>(key, () =>
+          this.getStandings().pipe(map(standings => estimatePrediction(setup, standings)))
+        );
       }
       return this.guestRequest(setup);
     }).pipe(shareReplay({ bufferSize: 1, refCount: false }));
@@ -186,19 +195,26 @@ export class PredictionService implements OnDestroy {
 
   private guestRequest(setup: PredictionRequest): Observable<PredictionResult> {
     if (this.pendingGuest) return this.pendingGuest;
-    const request$ = defer(() => from(this.claimGuestTrial())).pipe(
-      tap(() => this.guestState.set({ loading: true, request: setup, result: null, error: null })),
-      switchMap(guestId => this.http.post<PredictionResult>(`${API_URL}/predict`, { ...setup, guestId })),
+    const request$ = defer(() => {
+      this.refreshTrial();
+      if (this.guestTrialUsed()) {
+        throw new PredictionAccessError('GUEST_LIMIT_REACHED', 'You have used your free prediction. Sign in to try another setup.');
+      }
+      this.guestState.set({ loading: true, request: setup, result: null, error: null });
+      return this.getStandings();
+    }).pipe(
+      map(standings => estimatePrediction(setup, standings)),
+      switchMap(result => from(this.claimGuestTrial()).pipe(map(() => result))),
       tap(result => {
         this.guestState.set({ loading: false, request: setup, result, error: null });
         try {
           localStorage.setItem(GUEST_RESULT_KEY, JSON.stringify({ request: setup, result }));
         } catch {
-          // The attempt is already consumed. A result storage failure must not unlock another call.
+          // The estimate is still visible for this session.
         }
       }),
       catchError(error => {
-        const failure = this.accessError(error);
+        const failure = this.predictionError(error);
         this.guestState.update(state => ({ ...state, loading: false, error: failure }));
         return throwError(() => failure);
       }),
@@ -210,7 +226,7 @@ export class PredictionService implements OnDestroy {
   }
 
   private memberRequest<T extends PredictionResult | RaceOverview>(
-    requestKey: string, body: PredictionRequest | { type: 'overview' }
+    requestKey: string, compute: () => Observable<T>
   ): Observable<T> {
     const key = `${this.authState.getUser()?.email}:${requestKey}`;
     const cached = this.cache.get(key);
@@ -220,16 +236,13 @@ export class PredictionService implements OnDestroy {
     const inFlight = this.pending.get(key);
     if (inFlight) return inFlight as Observable<T>;
 
-    const request$ = defer(() => from(this.memberToken())).pipe(
-      switchMap(token => this.http.post<T>(`${API_URL}/predict`, body, {
-        headers: { Authorization: `Bearer ${token}` }
-      })),
+    const request$ = defer(compute).pipe(
       tap(value => {
         // Bound memory as users explore different setups.
         if (this.cache.size >= 100) this.cache.delete(this.cache.keys().next().value!);
         this.cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
       }),
-      catchError(error => throwError(() => this.accessError(error))),
+      catchError(error => throwError(() => this.predictionError(error))),
       finalize(() => this.pending.delete(key)),
       shareReplay({ bufferSize: 1, refCount: false })
     );
@@ -237,26 +250,29 @@ export class PredictionService implements OnDestroy {
     return request$;
   }
 
-  private async memberToken(): Promise<string> {
-    try {
-      const session = await fetchAuthSession();
-      const token = session.tokens?.idToken?.toString();
-      if (token) return token;
-    } catch {
-      // A local signed-in UI state is not sufficient authorization for a paid request.
+  private getStandings(): Observable<DriverStanding[]> {
+    if (this.standingsCache && this.standingsExpiresAt > Date.now()) {
+      return this.standingsCache;
     }
-    throw new PredictionAccessError('SIGN_IN_REQUIRED', 'Your session has expired. Sign in again to make a prediction.');
+    this.standingsExpiresAt = Date.now() + CACHE_TTL_MS;
+    this.standingsCache = this.ergast.getDriverStandings('current').pipe(
+      catchError(error => {
+        this.standingsCache = null;
+        return throwError(() => error);
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    return this.standingsCache;
   }
 
-  private async claimGuestTrial(): Promise<string> {
-    // This is a browser UX limit. Only server-side quotas can enforce Bedrock spending.
+  private async claimGuestTrial(): Promise<void> {
     if (typeof navigator !== 'undefined' && navigator.locks) {
       return navigator.locks.request(GUEST_TRIAL_KEY, () => this.consumeGuestTrial());
     }
     return this.consumeGuestTrial();
   }
 
-  private consumeGuestTrial(): string {
+  private consumeGuestTrial(): void {
     this.refreshTrial();
     if (this.storageUnavailable) {
       throw new PredictionAccessError('STORAGE_UNAVAILABLE', 'Enable browser storage or sign in to make a prediction.');
@@ -265,16 +281,9 @@ export class PredictionService implements OnDestroy {
       throw new PredictionAccessError('GUEST_LIMIT_REACHED', 'You have used your free prediction. Sign in to try another setup.');
     }
     try {
-      let guestId = localStorage.getItem(GUEST_ID_KEY);
-      if (!guestId) {
-        guestId = crypto.randomUUID();
-        localStorage.setItem(GUEST_ID_KEY, guestId);
-      }
-      // Persist before dispatch. An interrupted or failed response may still incur model cost.
       localStorage.setItem(GUEST_TRIAL_KEY, '1');
       if (localStorage.getItem(GUEST_TRIAL_KEY) !== '1') throw new Error('Storage write failed');
       this.trialUsed.set(true);
-      return guestId;
     } catch {
       this.storageUnavailable = true;
       this.trialUsed.set(true);
@@ -292,24 +301,11 @@ export class PredictionService implements OnDestroy {
     }
   }
 
-  private accessError(error: unknown): unknown {
-    if (!(error instanceof HttpErrorResponse)) return error;
-    const code = error.error?.code;
-    const messages: Partial<Record<PredictionAccessCode, string>> = {
-      GUEST_LIMIT_REACHED: 'You have used your free prediction. Sign in to try another setup.',
-      DAILY_LIMIT_REACHED: 'You have reached today’s prediction limit. Please try again tomorrow.',
-      GLOBAL_LIMIT_REACHED: 'Predictions are temporarily paused. Please try again later.',
-      RATE_LIMITED: 'Too many prediction requests. Please wait a moment before trying again.'
-    };
-    if (messages[code as PredictionAccessCode]) {
-      return new PredictionAccessError(code, messages[code as PredictionAccessCode]!);
-    }
-    if (error.status === 401) {
-      return new PredictionAccessError('SIGN_IN_REQUIRED', 'Sign in again to make a prediction.');
-    }
-    if (error.status === 429) {
-      return new PredictionAccessError('RATE_LIMITED', messages.RATE_LIMITED!);
-    }
-    return error;
+  private predictionError(error: unknown): PredictionAccessError {
+    if (error instanceof PredictionAccessError) return error;
+    return new PredictionAccessError(
+      'DATA_UNAVAILABLE',
+      'Current standings are unavailable. Please try again later; your guest prediction was not used.',
+    );
   }
 }
