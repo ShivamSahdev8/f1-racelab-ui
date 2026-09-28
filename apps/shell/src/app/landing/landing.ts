@@ -30,9 +30,9 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   features = [
     {
       pos: 'P1 · PREDICTOR',
-      title: 'AI race predictor',
-      desc: 'Win probability, expected finish and the optimal setup — generated from current season form and circuit history.',
-      meta: [{ label: 'MODEL', val: 'Claude' }, { label: 'VIA', val: 'Bedrock' }],
+      title: 'Race predictor',
+      desc: 'Illustrative race estimates based on current championship standings and your chosen setup.',
+      meta: [{ label: 'DATA', val: 'Standings' }, { label: 'COST', val: 'Free' }],
       accent: '#E10600'
     },
     {
@@ -60,8 +60,8 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
   techStack = [
     'Angular 21', 'Nx Monorepo', 'Module Federation',
-    'Amazon Bedrock', 'AWS Lambda', 'API Gateway',
-    'Cognito', 'CloudFront', 'AWS CDK', 'GitHub Actions'
+    'Browser prediction', 'Jolpica standings',
+    'Cognito', 'CloudFront', 'GitHub Actions'
   ];
 
   constructor(private router: Router) {}
