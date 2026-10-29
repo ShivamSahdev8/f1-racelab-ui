@@ -18,6 +18,11 @@
         "tsConfig": "apps/shell/tsconfig.app.json",
         "assets": [
           {
+            "glob": "news.json",
+            "input": "data/news",
+            "output": "assets"
+          },
+          {
             "glob": "**/*",
             "input": "apps/shell/public",
             "output": "."

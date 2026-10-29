@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { Observable, map } from 'rxjs';
-import { NewsService, NewsArticle } from '@f1-racelab/f1-data-client';
+import { Observable, map, catchError, of, startWith, Subject, switchMap } from 'rxjs';
+import type { NewsArticle } from '@f1-racelab/f1-data-client';
+import { HostedNewsService } from '../hosted-news.service';
 import { AuthStateService } from '@f1-racelab/shared-ui';
 
 /** Team accent colors — same palette as the signup team picker */
@@ -28,27 +29,40 @@ const TEAM_COLORS: Record<string, string> = {
 })
 export class NewsFeed {
 
-  news$: Observable<NewsArticle[]>;
+  private readonly refresh$ = new Subject<void>();
+  news$: Observable<{ articles: NewsArticle[]; updatedAt: string; loading: boolean; error: boolean }>;
   favouriteTeam$: Observable<string | null>;
 
   constructor(
-    private newsService: NewsService,
+    private newsService: HostedNewsService,
     private authState: AuthStateService
   ) {
-    this.news$ = this.newsService.getLatestNews();
+    this.news$ = this.refresh$.pipe(
+      startWith(undefined),
+      switchMap(() => this.newsService.getLatestNews().pipe(
+        map(feed => ({ ...feed, loading: false, error: false })),
+        catchError(() => of({ articles: [], updatedAt: '', loading: false, error: true })),
+        startWith({ articles: [], updatedAt: '', loading: true, error: false })
+      ))
+    );
     this.favouriteTeam$ = this.authState.user$.pipe(
       map(user => user?.favouriteTeam ?? null)
     );
   }
 
+  retry(): void {
+    this.refresh$.next();
+  }
+
   openArticle(url: string): void {
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   getTimeAgo(dateString: string): string {
     const date = new Date(dateString);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    if (!Number.isFinite(date.getTime())) return '';
+    const diff = Math.max(0, now.getTime() - date.getTime());
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
 
@@ -60,7 +74,7 @@ export class NewsFeed {
   /** Published within the last 6 hours → "NEW" pulse badge */
   isFresh(dateString: string): boolean {
     const diff = Date.now() - new Date(dateString).getTime();
-    return diff < 6 * 60 * 60 * 1000;
+    return diff >= 0 && diff < 6 * 60 * 60 * 1000;
   }
 
   /** Article mentions the user's favourite team in title or description */

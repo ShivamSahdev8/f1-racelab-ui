@@ -31,11 +31,19 @@
     </header>
 
     <!-- News Grid -->
-    <ng-container *ngIf="news$ | async as articles; else loading">
-      <div class="news-grid">
+    <ng-container *ngIf="news$ | async as feed">
+      <ng-container *ngIf="!feed.loading; else loading">
+      <div class="feed-status" role="alert" *ngIf="feed.error">
+        <p>News is temporarily unavailable. Please try again.</p>
+        <button type="button" (click)="retry()">Try again</button>
+        <a href="https://www.formula1.com/en/latest" target="_blank" rel="noopener noreferrer">Read news on Formula 1 →</a>
+      </div>
+      <p class="feed-updated" *ngIf="feed.updatedAt">Feed refreshed {{ feed.updatedAt | date:'medium' }}</p>
+      <p class="feed-status" *ngIf="!feed.error && !feed.articles.length">No news is available yet. Please check back soon.</p>
+      <div class="news-grid" *ngIf="!feed.error">
         <article
           class="news-card"
-          *ngFor="let article of articles; let i = index; trackBy: trackByLink"
+          *ngFor="let article of feed.articles; let i = index; trackBy: trackByLink"
           [class.featured]="i === 0"
           [class.fav-mention]="mentionsFavTeam(article, vm.fav)"
           [style.--tc]="getTeamColor(vm.fav)"
@@ -57,7 +65,7 @@
               <span class="news-source">{{ article.source }}</span>
               <span class="meta-right">
                 <span class="fresh-badge" *ngIf="isFresh(article.pubDate)">NEW</span>
-                <span class="news-date">{{ getTimeAgo(article.pubDate) }}</span>
+                <span class="news-date" *ngIf="article.pubDate">{{ getTimeAgo(article.pubDate) }}</span>
               </span>
             </div>
 
@@ -74,6 +82,7 @@
 
         </article>
       </div>
+      </ng-container>
     </ng-container>
 
     <!-- Loading — spinning F1 tire -->
