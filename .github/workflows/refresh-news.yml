@@ -1,0 +1,32 @@
+name: Refresh official F1 news
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-news
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and validate official feed
+        run: python3 scripts/refresh-news.py
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Publish feed
+        run: |
+          for app in shell news-mfe; do
+            aws s3 cp data/news/news.json "s3://f1-racelab-ui/$app/assets/news.json" --cache-control 'public, max-age=300' --content-type application/json
+          done

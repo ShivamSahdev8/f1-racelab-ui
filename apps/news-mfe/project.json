@@ -19,6 +19,11 @@
         "inlineStyleLanguage": "scss",
         "assets": [
           {
+            "glob": "news.json",
+            "input": "data/news",
+            "output": "assets"
+          },
+          {
             "glob": "**/*",
             "input": "apps/news-mfe/public",
             "output": "."

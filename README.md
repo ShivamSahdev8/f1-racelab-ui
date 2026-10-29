@@ -145,6 +145,8 @@ npx nx build predictor-mfe --base-href /predictor-mfe/
 
 ## Deployment
 
+News uses the official Formula 1 RSS feed, fetched by `scripts/refresh-news.py` and published as `assets/news.json` in the shell and news app. This removes the browser's dependency on rss2json (which returns Cloudflare 403 challenges) and avoids cross-origin RSS requests. A checked-in snapshot supports local development. Run `python3 scripts/refresh-news.py` to update it locally. Deployment fetches a fresh copy, and the `Refresh official F1 news` workflow refreshes production hourly with a five-minute cache lifetime. Failed fetches leave the previous production snapshot intact. The page displays the feed refresh time; article dates and images appear only when supplied by the feed.
+
 Deployment is automated with **GitHub Actions** on every push to `main`:
 
 1. Build each MFE with its `--base-href`

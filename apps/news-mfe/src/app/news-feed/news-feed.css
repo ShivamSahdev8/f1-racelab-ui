@@ -102,6 +102,14 @@
 }
 
 /* ── News Grid ────────────────────────────────────── */
+.feed-updated { color: #868EA6; font-size: 12px; margin-bottom: 20px; }
+.feed-status { padding: 32px; text-align: center; color: #F4F6FF; }
+.feed-status button, .feed-status a {
+  display: inline-block; margin: 8px; padding: 12px 18px;
+  border: 1px solid #868EA6; border-radius: 8px;
+  background: #161b29; color: #F4F6FF; font: inherit; cursor: pointer;
+}
+
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
