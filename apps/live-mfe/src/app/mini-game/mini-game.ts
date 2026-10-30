@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { advanceRace, createRace, PLAYER_Y, raceSpeed } from './race-game';
+import { ARCADE_TEAMS } from './race-roster';
 
 type GameStatus = 'ready' | 'racing' | 'paused' | 'crashed';
 
@@ -19,11 +20,38 @@ export class MiniGameComponent implements OnDestroy {
   readonly distance = computed(() => Math.floor(this.race().distance));
   readonly speed = computed(() => Math.round(raceSpeed(this.race().elapsed) * 1.15));
   readonly playerY = PLAYER_Y;
+  readonly teams = ARCADE_TEAMS;
+  readonly teamId = signal(ARCADE_TEAMS[0].id);
+  readonly driverId = signal(ARCADE_TEAMS[0].drivers[0].id);
+  readonly selectedTeam = computed(() => this.teams.find(team => team.id === this.teamId())!);
+  readonly selectedDriver = computed(() => this.selectedTeam().drivers.find(driver => driver.id === this.driverId())!);
+  readonly canSelectSeat = computed(() => this.status() === 'ready' || this.status() === 'crashed');
   best = 0;
   private left = false;
   private right = false;
   private frame?: number;
   private lastTime = 0;
+
+  selectTeam(id: string): void {
+    if (!this.canSelectSeat()) return;
+    const team = this.teams.find(team => team.id === id);
+    if (!team || team.id === this.teamId()) return;
+    this.teamId.set(team.id);
+    this.driverId.set(team.drivers[0].id);
+  }
+
+  selectDriver(id: string): void {
+    if (this.canSelectSeat() && this.selectedTeam().drivers.some(driver => driver.id === id)) {
+      this.driverId.set(id);
+    }
+  }
+
+  returnToGarage(): void {
+    this.stopFrame();
+    this.left = this.right = false;
+    this.race.set(createRace());
+    this.status.set('ready');
+  }
 
   start(): void {
     this.stopFrame();

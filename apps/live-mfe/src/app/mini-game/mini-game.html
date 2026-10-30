@@ -1,16 +1,37 @@
-<section class="arcade" aria-labelledby="arcade-title" (keydown)="keyDown($event)" (keyup)="keyUp($event)" (focusout)="focusOut($event)">
+<section class="arcade" [style.--team-color]="selectedTeam().color" aria-labelledby="arcade-title" (keydown)="keyDown($event)" (keyup)="keyUp($event)" (focusout)="focusOut($event)">
   <div class="game-copy">
     <span class="eyebrow">THE PADDOCK ARCADE</span>
     <h2 id="arcade-title">Your turn <br>to take the wheel.</h2>
-    <p>A clear track. A little traffic. See how far you can go without a trip to the barriers.</p>
+    <p>Pick your team. Choose your driver. Keep moving as the traffic closes in.</p>
+    <fieldset class="garage" [disabled]="!canSelectSeat()">
+      <legend>CHOOSE YOUR SEAT <span>2026 GRID</span></legend>
+      <div class="garage-fields">
+        <label for="arcade-team">Team
+          <select id="arcade-team" [value]="teamId()" (change)="selectTeam($any($event.target).value)">
+            <option *ngFor="let team of teams" [value]="team.id">{{ team.name }}</option>
+          </select>
+        </label>
+        <label for="arcade-driver">Driver
+          <select id="arcade-driver" [value]="driverId()" (change)="selectDriver($any($event.target).value)">
+            <option *ngFor="let driver of selectedTeam().drivers" [value]="driver.id">{{ driver.number }} · {{ driver.name }}</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
+    <p class="seat-note">{{ canSelectSeat() ? 'Your team colour. Your driver’s number.' : 'Seat locked for this run. Pause to return to the garage.' }}</p>
     <div class="instruction"><span class="key">←</span><span class="key">→</span><span>Steer left and right</span></div>
     <div class="instruction"><span class="key key-wide">ESC</span><span>Pause your run</span></div>
-    <p class="fine-print">Avoid the other cars. The pace builds as you drive.<br>On your phone? Hold the steering buttons below.</p>
+    <p class="fine-print">No safe lane. Keep finding a gap as the pace rises.<br>On your phone? Hold the steering buttons below.</p>
     <div class="session-best"><span>BEST THIS VISIT</span><strong>{{ best }} <small>m</small></strong></div>
     <span class="game-tag">MINI GAME · NO SIGN-IN NEEDED</span>
   </div>
 
   <div class="game-machine">
+    <div class="driver-strip" aria-label="Selected racing driver">
+      <span class="driver-number">{{ selectedDriver().number }}</span>
+      <div><strong>{{ selectedDriver().name }}</strong><span>{{ selectedTeam().name }}</span></div>
+      <span class="driver-abbreviation">{{ selectedDriver().abbreviation }}</span>
+    </div>
     <div class="scoreboard" aria-label="Game score">
       <div><span>DISTANCE</span><strong>{{ distance() }}<small> m</small></strong></div>
       <div><span>OVERTAKES</span><strong>{{ race().overtakes }}</strong></div>
@@ -51,8 +72,8 @@
         <g *ngFor="let car of race().cars" [attr.transform]="'translate(' + car.x + ',' + car.y + ')'">
           <ng-container *ngTemplateOutlet="raceCar; context: { color: car.color, number: (car.id % 90) + 1 }"/>
         </g>
-        <g [attr.transform]="'translate(' + race().x + ',' + playerY + ')'" [class.crashed-car]="status() === 'crashed'">
-          <ng-container *ngTemplateOutlet="raceCar; context: { color: '#ff3138', number: 1 }"/>
+        <g class="player-car" [attr.transform]="'translate(' + race().x + ',' + playerY + ')'" [class.crashed-car]="status() === 'crashed'">
+          <ng-container *ngTemplateOutlet="raceCar; context: { color: selectedTeam().color, number: selectedDriver().number }"/>
         </g>
       </svg>
       <div class="game-overlay" *ngIf="status() !== 'racing'">
@@ -65,6 +86,7 @@
           <p *ngIf="status() === 'crashed'">{{ distance() }} metres · {{ race().overtakes }} overtakes<br>Another run. A cleaner line.</p>
           <button type="button" class="start-button" *ngIf="status() !== 'paused'" (click)="start()">{{ status() === 'crashed' ? 'Race again' : 'Start engine' }} <span>↗</span></button>
           <button type="button" class="start-button" *ngIf="status() === 'paused'" (click)="resume()">Back on track <span>↗</span></button>
+          <button type="button" class="garage-button" *ngIf="status() === 'paused'" (click)="returnToGarage()">End run &amp; change driver</button>
         </div>
       </div>
     </div>
