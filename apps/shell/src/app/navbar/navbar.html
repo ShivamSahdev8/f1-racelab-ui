@@ -1,28 +1,36 @@
 <div class="navbar">
-  <nav class="nav-inner">
+  <nav class="nav-inner" aria-label="Main navigation" #navigation>
 
-    <a class="brand" routerLink="/">
+    <a class="brand" routerLink="/" (click)="closeNavigation()">
       <span class="dot"></span>F1 RACELAB
     </a>
 
-    <div class="tabs" #tabsContainer>
+    <button class="menu-toggle" type="button" #menuToggle
+      (click)="toggleNavigation()" [attr.aria-expanded]="mobileMenuOpen()"
+      aria-controls="primary-navigation" [attr.aria-label]="mobileMenuOpen() ? 'Close navigation' : 'Open navigation'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path [attr.d]="mobileMenuOpen() ? 'M6 6l12 12M6 18L18 6' : 'M4 6h16M4 12h16M4 18h16'" />
+      </svg>
+    </button>
+
+    <div class="tabs" id="primary-navigation" [class.mobile-open]="mobileMenuOpen()">
       <span class="pill" #pill></span>
-      <a class="tab" routerLink="/predictor" routerLinkActive="active" #tab>Prediction</a>
-      <a class="tab" routerLink="/live" routerLinkActive="active" #tab>Live</a>
-      <a class="tab" routerLink="/stats" routerLinkActive="active" #tab>Standings</a>
-      <a class="tab" routerLink="/fantasy" routerLinkActive="active" #tab>Fantasy</a>
-      <a class="tab" routerLink="/news" routerLinkActive="active" #tab>News</a>
+      <a class="tab" routerLink="/predictor" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()" #tab>Prediction</a>
+      <a class="tab" routerLink="/live" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()" #tab>Live</a>
+      <a class="tab" routerLink="/stats" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()" #tab>Standings</a>
+      <a class="tab" routerLink="/fantasy" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()" #tab>Fantasy</a>
+      <a class="tab" routerLink="/news" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeNavigation()" #tab>News</a>
     </div>
 
     <!-- User dropdown or enter app -->
 <ng-container *ngIf="isLoggedIn$ | async; else loginBtn">
   <div class="user-area" #userArea>
-    <button class="nav-enter" (click)="toggleDropdown()">
-      {{ (user$ | async)?.name || 'Account' }}
+    <button class="nav-enter" (click)="toggleDropdown()" [attr.aria-expanded]="showDropdown" aria-controls="account-menu">
+      <span class="account-name">{{ (user$ | async)?.name || 'Account' }}</span>
       <span class="caret" [class.open]="showDropdown">▾</span>
     </button>
 
-    <div class="dropdown" *ngIf="showDropdown">
+    <div class="dropdown" id="account-menu" *ngIf="showDropdown">
       <div class="dropdown-header">
         <div class="dropdown-avatar">
           {{ ((user$ | async)?.name || 'G')[0] }}

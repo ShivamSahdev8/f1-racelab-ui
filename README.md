@@ -13,7 +13,7 @@
 **🧠 Backend infrastructure:** [f1-racelab-api](https://github.com/ShivamSahdev8/f1-racelab-api)
 
 > **🚀 Try it instantly — no signup needed**
-> Open **Prediction** (the first navigation tab) or choose **"Try a Free Prediction"** on the landing page. Guests can submit one prediction, then sign in to continue. A completed guest result is saved in that browser.
+> Open **Prediction** (the first navigation tab, or the menu on a phone) or choose **"Try a Free Prediction"** on the landing page. Anyone can submit one prediction without signing in, then sign in to continue. A completed result is saved in that browser; there is no separate guest login.
 
 ---
 
