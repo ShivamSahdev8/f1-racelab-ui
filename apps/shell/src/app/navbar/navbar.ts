@@ -1,6 +1,6 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
-  ElementRef, ViewChild, ViewChildren, QueryList
+  ElementRef, ViewChild, ViewChildren, QueryList, HostListener, signal
 } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, AsyncPipe } from '@angular/common';
@@ -20,10 +20,13 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('pill') pillRef!: ElementRef<HTMLSpanElement>;
   @ViewChildren('tab') tabRefs!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChild('navigation') navigationRef?: ElementRef<HTMLElement>;
+  @ViewChild('menuToggle') menuToggleRef?: ElementRef<HTMLButtonElement>;
 
   user$: Observable<AuthUser | null>;
   isLoggedIn$: Observable<boolean>;
   showDropdown = false;
+  readonly mobileMenuOpen = signal(false);
 
   private routerSub!: Subscription;
 
@@ -45,7 +48,11 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     // Move pill on route change
     this.routerSub = this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
-    ).subscribe(() => setTimeout(() => this.movePill(), 50));
+    ).subscribe(() => {
+      this.mobileMenuOpen.set(false);
+      this.showDropdown = false;
+      setTimeout(() => this.movePill(), 50);
+    });
     setTimeout(() => this.movePill(), 100);
   }
 
@@ -63,6 +70,31 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
       pill.style.width = active.nativeElement.offsetWidth + 'px';
     } else if (pill) {
       pill.style.width = '0';
+    }
+  }
+
+  toggleNavigation(): void {
+    this.mobileMenuOpen.update(open => !open);
+    this.showDropdown = false;
+  }
+
+  closeNavigation(): void {
+    this.mobileMenuOpen.set(false);
+  }
+
+  @HostListener('window:resize') onResize(): void { this.movePill(); }
+
+  @HostListener('document:keydown.escape') closeMenus(): void {
+    const restoreMenuFocus = this.mobileMenuOpen();
+    this.mobileMenuOpen.set(false);
+    this.showDropdown = false;
+    if (restoreMenuFocus) this.menuToggleRef?.nativeElement.focus();
+  }
+
+  @HostListener('document:click', ['$event']) closeOutside(event: MouseEvent): void {
+    if (!this.navigationRef?.nativeElement.contains(event.target as Node)) {
+      this.mobileMenuOpen.set(false);
+      this.showDropdown = false;
     }
   }
 
@@ -84,6 +116,7 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleDropdown(): void {
     this.showDropdown = !this.showDropdown;
+    this.mobileMenuOpen.set(false);
   }
 
   async logout(): Promise<void> {

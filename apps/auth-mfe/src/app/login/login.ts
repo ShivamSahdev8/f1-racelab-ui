@@ -143,10 +143,6 @@ export class Login {
     
   }
 
-  async tryAsGuest(): Promise<void> {
-    await this.router.navigate(['/predictor']);
-  }
-
   togglePassword(): void {
     this.showPassword.update(v => !v);
   }

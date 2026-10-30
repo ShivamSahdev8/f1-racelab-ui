@@ -35,10 +35,6 @@
   display: grid; grid-template-columns: 1fr 1fr;
   min-height: 100vh;
 }
-@media(max-width: 860px) {
-  .auth-page { grid-template-columns: 1fr; }
-  .brand-panel { display: none; }
-}
 
 /* ── Brand panel ──────────────────── */
 .brand-panel {
@@ -113,46 +109,8 @@
 .link { color: #E10600; text-decoration: none; font-weight: 600; }
 .link:hover { text-decoration: underline; }
 
-/* Guest button */
-.guest-btn {
-  width: 100%; display: flex; align-items: center; gap: 14px;
-  padding: 16px 20px; border-radius: 14px; cursor: pointer;
-  background: linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
-  border: 1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(12px);
-  transition: all .25s; margin-bottom: 24px;
-}
-.guest-btn:hover:not(:disabled) {
-  border-color: rgba(225,6,0,.5);
-  background: linear-gradient(135deg, rgba(225,6,0,.08), rgba(255,255,255,.02));
-  transform: translateY(-1px);
-}
-.guest-btn:disabled { opacity: .5; cursor: not-allowed; }
-.guest-icon { font-size: 24px; }
-.guest-text {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: flex-start; gap: 2px;
-}
-.guest-title { color: #F4F6FF; font-weight: 600; font-size: 14px; }
-.guest-hint {
-  font-family: 'JetBrains Mono', monospace;
-  color: #868EA6; font-size: 11px;
-}
-.guest-arrow { color: #E10600; font-size: 18px; font-weight: 700; }
-
-/* Divider */
-.divider {
-  display: flex; align-items: center; gap: 14px;
-  margin-bottom: 24px;
-}
-.divider::before, .divider::after {
-  content: ""; flex: 1; height: 1px; background: rgba(255,255,255,.08);
-}
-.divider span {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: #868EA6;
-  white-space: nowrap;
-}
+.prediction-note { margin: 0 0 24px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; color: #aeb6cc; font-size: 14px; line-height: 1.6; }
+.prediction-note .link { display: block; padding: 8px 0; color: #ff6a60; }
 
 /* Fields */
 .field { margin-bottom: 20px; }
@@ -204,3 +162,10 @@
 }
 .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 .spinner { display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+@media(max-width: 900px) {
+  .auth-page { grid-template-columns: minmax(0, 1fr); min-height: calc(100svh - 76px); }
+  .brand-panel { display: none; }
+  .form-panel { padding: 28px 20px 40px; align-items: flex-start; }
+  .field input { font-size: 16px; }
+}

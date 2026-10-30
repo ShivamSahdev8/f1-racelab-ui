@@ -40,17 +40,10 @@
         <p class="form-sub">New to RaceLab? <a routerLink="/auth/register" class="link">Create an account</a></p>
       </div>
 
-      <!-- Guest CTA -->
-      <button class="guest-btn" (click)="tryAsGuest()" [disabled]="isLoading()">
-        <span class="guest-icon">👀</span>
-        <div class="guest-text">
-          <span class="guest-title">Try as Guest</span>
-          <span class="guest-hint">One free prediction · no signup needed</span>
-        </div>
-        <span class="guest-arrow">→</span>
-      </button>
-
-      <div class="divider"><span>or sign in with email</span></div>
+      <p class="prediction-note">Your first prediction is free without signing in.
+        <a routerLink="/predictor" class="link">Open Prediction →</a>
+        Sign in here to run more predictions.
+      </p>
 
       <!-- Form -->
       <form (ngSubmit)="onLogin()" #loginForm="ngForm">

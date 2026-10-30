@@ -1,8 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { AuthStateService, BusEventType, EventBusService } from '@f1-racelab/shared-ui';
 import { AuthService } from '../auth.service';
 import { Login } from './login';
+
+@Component({ standalone: true, template: '' })
+class PredictionEntryTestPage {}
 
 describe('Login', () => {
   let component: Login;
@@ -25,7 +29,7 @@ describe('Login', () => {
     await TestBed.configureTestingModule({
       imports: [Login],
       providers: [
-        provideRouter([]),
+        provideRouter([{ path: 'predictor', component: PredictionEntryTestPage }]),
         { provide: AuthService, useValue: authService },
         { provide: AuthStateService, useValue: authState },
         { provide: EventBusService, useValue: eventBus },
@@ -38,14 +42,18 @@ describe('Login', () => {
     await fixture.whenStable();
   });
 
-  it('opens the anonymous prediction from the guest button without signing in', async () => {
+  it('offers direct prediction access without a guest sign-in button', async () => {
     component.email = 'fan@example.com';
     component.password = 'user-entered-password';
 
-    fixture.nativeElement.querySelector('.guest-btn').click();
+    const predictionLink = fixture.nativeElement.querySelector('.prediction-note a');
+    expect(fixture.nativeElement.querySelector('.guest-btn')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Try as Guest');
+    expect(predictionLink.getAttribute('href')).toBe('/predictor');
+    predictionLink.click();
     await fixture.whenStable();
 
-    expect(navigate).toHaveBeenCalledWith(['/predictor']);
+    expect(TestBed.inject(Router).url).toBe('/predictor');
     expect(authService.login).not.toHaveBeenCalled();
     expect(authState.setUser).not.toHaveBeenCalled();
     expect(eventBus.emit).not.toHaveBeenCalled();
