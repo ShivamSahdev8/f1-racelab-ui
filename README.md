@@ -84,6 +84,8 @@ auth-mfe    live-mfe     stats-mfe     news-mfe    fantasy-mfe / predictor-mfe
 
 ## Key Features
 
+- 🏎️ **Between-session arcade** — Live shows timing only during a verified current session with fresh data. Between sessions it clears the timing table and offers a traffic-dodging mini-game. Choose from the 2026 teams and their drivers to set your car's colour and number, then steer with arrow keys or touch controls. Traffic uses the full track width and the pace ramps up over 20 seconds; pause/resume, restart, and return to the garage are supported. Status is checked every 30 seconds; provider failures show a separate unavailable message. The game runs locally in the browser without sign-in or backend requests.
+
 - 🧩 **True micro-frontend setup** — six remotes loaded at runtime, each independently buildable and deployable
 - 🔮 **Race estimator** — illustrative estimates based on current standings and tyre, weather, downforce, and strategy inputs; computation runs in the browser
 - 🏁 **Race overview** — auto-generated top contenders for the upcoming Grand Prix

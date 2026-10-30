@@ -1,128 +1,59 @@
-<div class="live-timing">
-
-  <!-- Aurora atmospheric background -->
-  <div class="aurora" aria-hidden="true">
-    <div class="aurora-a"></div>
-    <div class="aurora-b"></div>
-  </div>
-  <div class="grain" aria-hidden="true"></div>
-
-  <!-- Safety Car Alert -->
-  <div class="sc-banner" *ngIf="safetyCarActive$ | async">
-    <div class="sc-flag"></div>
-    <span class="sc-label">SC</span>
-    <div class="sc-text">
-      <span class="sc-title">SAFETY CAR DEPLOYED</span>
-      <span class="sc-sub">ALL CARS MUST REDUCE SPEED</span>
-    </div>
-    <div class="sc-flag sc-flag--right"></div>
-  </div>
-
-  <!-- Page content -->
-  <div class="page-content">
-
-    <!-- Header -->
+<div class="live-timing" *ngIf="state() as view">
+  <div class="ambient" aria-hidden="true"></div>
+  <main class="page-content">
     <header class="timing-header">
-      <div class="header-left">
-        <!-- Spinning F1 Tire — live indicator -->
-        <div class="f1-tire" [class.fast-spin]="isRefreshing" aria-hidden="true">
-          <div class="tire-hub"></div>
-        </div>
-        <div class="header-titles">
-          <div class="live-badge">
-            <span class="live-dot"></span>
-            LIVE
-          </div>
-          <h1 class="page-title">LIVE TIMING</h1>
-        </div>
+      <div>
+        <p class="eyebrow">F1 RACELAB / TRACKSIDE</p>
+        <h1>{{ view.status === 'live' ? 'LIVE TIMING' : 'RACE CENTRE' }}</h1>
       </div>
-      <div class="header-right">
-        <span class="session-chip">2024 · F1 SEASON</span>
-        <button class="refresh-btn" (click)="refresh()">
-          <span class="refresh-icon" [class.spinning]="isRefreshing">↺</span>
-          REFRESH
+      <div class="header-actions">
+        <span class="status-pill" [class.is-live]="view.status === 'live'" role="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          {{ view.status === 'live' ? 'SESSION LIVE' : view.status === 'idle' ? 'BETWEEN SESSIONS' : view.status === 'loading' ? 'CHECKING SESSION' : 'TIMING UNAVAILABLE' }}
+        </span>
+        <button class="refresh-btn" type="button" (click)="refresh()" [disabled]="isChecking()">
+          <span aria-hidden="true">↻</span> {{ isChecking() ? 'Checking…' : 'Check session' }}
         </button>
       </div>
     </header>
 
-    <!-- Timing Table -->
-    <div class="timing-table-wrap">
+    <section class="checking-state" *ngIf="view.status === 'loading'" aria-live="polite">
+      <span class="check-symbol" aria-hidden="true">⌁</span>
+      <h2>Checking the track</h2>
+      <p>Looking for a session happening right now.</p>
+    </section>
 
-      <ng-container *ngIf="timingData$ | async as timingData; else loading">
+    <ng-container *ngIf="view.status === 'live'">
+      <div class="session-heading">
+        <h2>{{ view.session?.country_name }} · {{ view.session?.session_name }}</h2>
+        <span>{{ view.session?.year }} · Updates every 30 seconds</span>
+      </div>
+      <div class="timing-table-wrap" role="region" aria-label="Current session timing" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">POS</th><th scope="col">DRIVER</th><th scope="col">TEAM</th><th scope="col">TYRE</th><th scope="col">GAP</th><th scope="col">LAST LAP</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let entry of view.entries; trackBy: trackByDriver" [style.--team-color]="entry.teamColor">
+              <td class="pos-cell" [class.leader]="entry.position === 1">{{ entry.position }}</td>
+              <td class="driver-cell"><strong>{{ entry.abbreviation }}</strong><span>{{ entry.fullName }}</span></td>
+              <td>{{ entry.teamName }}</td>
+              <td><span class="tyre-badge" [style.--tc]="getTyreColor(entry.compound)" [attr.aria-label]="entry.compound || 'Tyre unknown'">{{ getTyreLetter(entry.compound) }}</span></td>
+              <td [class.leader]="entry.position === 1">{{ entry.position === 1 ? 'LEADER' : entry.gap || '—' }}</td>
+              <td>{{ entry.lastLapTime || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
 
-        <!-- Table Column Headers -->
-        <div class="table-head">
-          <span>POS</span>
-          <span>DRIVER</span>
-          <span>TEAM</span>
-          <span>TYRE</span>
-          <span>GAP</span>
-          <span>LAST LAP</span>
-        </div>
-
-        <!-- Driver Rows -->
-        <div
-          class="driver-row"
-          *ngFor="let entry of timingData; let i = index; trackBy: trackByDriver"
-          [class]="getPositionClass(entry.position || i + 1)"
-          [style.--team-color]="entry.teamColor"
-          (click)="onDriverClick(entry)">
-
-          <!-- Position -->
-          <div class="pos-cell">
-            <span class="pos-num">{{ entry.position || i + 1 }}</span>
-          </div>
-
-          <!-- Driver -->
-          <div class="driver-cell">
-            <span class="driver-abbr">{{ entry.abbreviation }}</span>
-            <span class="driver-name">{{ entry.fullName }}</span>
-          </div>
-
-          <!-- Team -->
-          <div class="team-cell">
-            <span class="team-name">{{ entry.teamName }}</span>
-          </div>
-
-          <!-- Tyre -->
-          <div class="tyre-cell">
-            <div class="tyre-badge" [style.--tc]="getTyreColor(entry.compound)">
-              {{ getTyreLetter(entry.compound) }}
-            </div>
-          </div>
-
-          <!-- Gap -->
-          <div class="gap-cell">
-            <span class="gap-value" [class.is-leader]="isLeader(entry.position || i + 1)">
-              {{ isLeader(entry.position || i + 1) ? 'LEADER' : (entry.gap || '—') }}
-            </span>
-          </div>
-
-          <!-- Last Lap -->
-          <div class="lap-cell">
-            <span class="lap-time">{{ entry.lastLapTime || '—:——.———' }}</span>
-          </div>
-
-        </div>
-      </ng-container>
-
-      <!-- Loading State -->
-      <ng-template #loading>
-        <div class="loading-state">
-          <div class="f1-tire f1-tire--lg" aria-hidden="true">
-            <div class="tire-hub"></div>
-          </div>
-          <p class="loading-label">ACQUIRING LIVE TIMING DATA</p>
-          <div class="loading-dots">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-      </ng-template>
-
-    </div>
-    <!-- end .timing-table-wrap -->
-
-  </div>
-  <!-- end .page-content -->
-
+    <ng-container *ngIf="view.status === 'idle' || view.status === 'unavailable'">
+      <section class="idle-intro" aria-labelledby="idle-title">
+        <div class="idle-icon" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <p class="eyebrow">{{ view.status === 'idle' ? 'A LITTLE QUIET IN THE PADDOCK' : 'TAKE A PIT STOP' }}</p>
+        <h2 id="idle-title">{{ view.status === 'idle' ? 'No live race is going on.' : 'Live timing is unavailable.' }}</h2>
+        <p class="idle-description" *ngIf="view.status === 'idle'">The track is quiet. Take the wheel in our mini-game while you wait for the next session.</p>
+        <p class="idle-description" *ngIf="view.status === 'unavailable'">{{ view.message }} Take the wheel in our mini-game while you wait.</p>
+      </section>
+      <app-mini-game />
+    </ng-container>
+  </main>
 </div>

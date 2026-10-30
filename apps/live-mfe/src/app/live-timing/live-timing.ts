@@ -1,76 +1,61 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
-import { OpenF1Service } from '@f1-racelab/f1-data-client';
-import { EventBusService } from '@f1-racelab/shared-ui';
-import { Driver } from '@f1-racelab/shared-models';
+import { Component, ChangeDetectionStrategy, DestroyRef, computed, inject, signal } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, exhaustMap, filter, finalize, fromEvent, merge, timer } from 'rxjs';
+import { LiveSessionService, LiveSessionState, LiveTimingEntry, isSessionActive } from '../live-session.service';
+import { MiniGameComponent } from '../mini-game/mini-game';
 
 @Component({
   selector: 'app-live-timing',
   standalone: true,
-  imports: [CommonModule, AsyncPipe],
+  imports: [CommonModule, MiniGameComponent],
   templateUrl: './live-timing.html',
   styleUrl: './live-timing.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LiveTimingComponent {
+  private readonly service = inject(LiveSessionService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
+  private readonly refreshRequests = new Subject<void>();
+  private readonly now = signal(Date.now());
+  private readonly result = signal<LiveSessionState>({ status: 'loading', session: null, entries: [] });
+  readonly isChecking = signal(false);
+  readonly state = computed<LiveSessionState>(() => {
+    const state = this.result();
+    const now = this.now();
+    if (state.status !== 'live') return state;
+    if (!state.session || !isSessionActive(state.session, now)) {
+      return { status: 'idle', session: null, entries: [] };
+    }
+    if (!state.activityAt || now - state.activityAt > 120_000) {
+      return { status: 'unavailable', session: state.session, entries: [], message: 'Live timing has stopped updating. Please check again shortly.' };
+    }
+    return state;
+  });
 
-  timingData$: Observable<any[]>;
-  safetyCarActive$: Observable<boolean>;
-  isRefreshing = false;
-
-  constructor(
-    private openF1Service: OpenF1Service,
-    private eventBus: EventBusService
-  ) {
-    this.timingData$ = this.openF1Service.getLiveTimingData('latest');
-    this.safetyCarActive$ = this.eventBus.onSafetyCar();
+  constructor() {
+    merge(timer(0, 30_000), this.refreshRequests, fromEvent(this.document, 'visibilitychange')).pipe(
+      filter(() => !this.document.hidden),
+      exhaustMap(() => {
+        this.isChecking.set(true);
+        return this.service.getState().pipe(finalize(() => this.isChecking.set(false)));
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(state => { this.now.set(Date.now()); this.result.set(state); });
+    timer(0, 1_000).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.now.set(Date.now()));
   }
 
-  onDriverClick(driver: Driver): void {
-    this.eventBus.selectDriver(driver);
+  refresh(): void { this.refreshRequests.next(); }
+
+  getTyreColor(compound: string | null): string {
+    return ({ SOFT: '#E10600', MEDIUM: '#FFD700', HARD: '#F4F6FF', INTERMEDIATE: '#00D767', WET: '#3B82F6' } as Record<string, string>)[compound ?? ''] ?? '#868EA6';
   }
 
-  refresh(): void {
-    this.isRefreshing = true;
-    this.timingData$ = this.openF1Service.getLiveTimingData('latest');
-    setTimeout(() => { this.isRefreshing = false; }, 800);
+  getTyreLetter(compound: string | null): string {
+    return ({ SOFT: 'S', MEDIUM: 'M', HARD: 'H', INTERMEDIATE: 'I', WET: 'W' } as Record<string, string>)[compound ?? ''] ?? '—';
   }
 
-  getTyreColor(compound: string): string {
-    const colors: Record<string, string> = {
-      'SOFT':         '#E10600',
-      'MEDIUM':       '#FFD700',
-      'HARD':         '#F4F6FF',
-      'INTERMEDIATE': '#00D767',
-      'WET':          '#3B82F6',
-    };
-    return colors[compound] ?? '#868EA6';
-  }
-
-  getTyreLetter(compound: string): string {
-    const letters: Record<string, string> = {
-      'SOFT':         'S',
-      'MEDIUM':       'M',
-      'HARD':         'H',
-      'INTERMEDIATE': 'I',
-      'WET':          'W',
-    };
-    return letters[compound] ?? '?';
-  }
-
-  getPositionClass(pos: number): string {
-    if (pos === 1) return 'pos-p1';
-    if (pos === 2) return 'pos-p2';
-    if (pos === 3) return 'pos-p3';
-    return '';
-  }
-
-  isLeader(pos: number): boolean {
-    return pos === 1;
-  }
-
-  trackByDriver(index: number, entry: any): any {
-    return entry.driverNumber ?? index;
-  }
+  trackByDriver(_index: number, entry: LiveTimingEntry): number { return entry.driverNumber; }
 }
